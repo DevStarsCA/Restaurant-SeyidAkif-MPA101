@@ -22,7 +22,7 @@ public class Order : AuditableEntity
     public Table Table { get; set; } = null!;
     public Waiter? Waiter { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-    //public Payment? Payment { get; set; }
+    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public void CalculateTotal()
     {
