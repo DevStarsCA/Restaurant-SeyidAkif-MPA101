@@ -21,7 +21,6 @@ public class Payment : AuditableEntity
 
     public Order Order { get; set; } = null!;
 
-    // Domain Methods
     public void MarkAsCompleted(string? transactionId = null)
     {
         Status = PaymentStatus.Completed;
