@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Restaurant.Application/Restaurant.Application.csproj" Id="0ec31c88-22bd-4534-82ba-ef193494a052" />
   <Project Path="Restaurant.Domain/Restaurant.Domain.csproj" Id="e9d7c0e5-1b52-446f-8d9e-557961d767fb" />
+  <Project Path="Restaurant.Persistence/Restaurant.Persistence.csproj" Id="2d67deae-b084-4dc1-87df-73eb635630a6" />
 </Solution>

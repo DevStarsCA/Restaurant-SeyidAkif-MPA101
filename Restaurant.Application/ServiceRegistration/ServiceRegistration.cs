@@ -5,9 +5,9 @@ using Restaurant.Application.Interfaces;
 using Restaurant.Application.Services;
 using System.Reflection;
 
-namespace Restaurant.Application;
+namespace Restaurant.Application.ServiceRegistration;
 
-public static class ServiceRegistration
+public static class ApplicationServiceRegistration
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {

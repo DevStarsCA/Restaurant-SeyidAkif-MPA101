@@ -15,7 +15,7 @@ public class Table : BaseEntity
     public int Capacity { get; set; }   
     public TableStatus Status { get; set; } = TableStatus.Available;
     public ICollection<Order> Orders { get; set; } = new List<Order>();
-    public ICollection<BasketItem> Baskets { get; set; } = new List<BasketItem>();
+    public ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
     public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
     public ICollection<WaiterTable> WaiterTables { get; set; } = new List<WaiterTable>();
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();

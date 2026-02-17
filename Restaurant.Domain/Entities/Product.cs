@@ -16,6 +16,6 @@ public class Product : AuditableEntity
     public int PreparationTimeMinutes { get; set; }
     public Guid CategoryId { get; set; }
     public Category Category { get; set; } = null!;
-    public ICollection<BasketItem> BasketItem { get; set; } = new List<BasketItem>();
+    public ICollection<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
