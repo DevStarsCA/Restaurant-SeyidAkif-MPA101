@@ -44,11 +44,12 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
         foreach (var entry in ChangeTracker.Entries())
         {
-            if (entry.State == EntityState.Modified)
+            if (entry.State == EntityState.Modified && entry.Properties.Any(p => p.Metadata.Name == "UpdatedAt"))
             {
                 entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
             }
         }
         return base.SaveChangesAsync(cancellationToken);
     }
+
 }
