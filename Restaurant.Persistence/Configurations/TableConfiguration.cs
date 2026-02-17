@@ -15,11 +15,8 @@ public class TableConfiguration : IEntityTypeConfiguration<Table>
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).IsRequired().HasMaxLength(50);
-        builder.Property(x => x.QRCode).IsRequired()
-            .HasColumnType("nvarchar(MAX)");
+        builder.Property(x => x.QRCode).IsRequired().HasColumnType("nvarchar(MAX)");
         builder.Property(x => x.Capacity).IsRequired();
         builder.Property(x => x.Status).HasConversion<int>();
-
-        builder.HasIndex(x => x.QRCode).IsUnique();
     }
 }

@@ -53,13 +53,13 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    //app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-//app.UseMiddleware<Restaurant.API.Middlewares.ExceptionMiddleware>();
+app.UseMiddleware<Restaurant.API.Middlewares.ExceptionMiddleware>();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
