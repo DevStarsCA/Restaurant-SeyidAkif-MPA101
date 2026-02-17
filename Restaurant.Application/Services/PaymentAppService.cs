@@ -7,8 +7,6 @@ using Restaurant.Domain.Entities;
 using Restaurant.Domain.Enums;
 using Restaurant.Domain.Interfaces;
 
-namespace Restaurant.Application.Services;
-
 public class PaymentAppService : IPaymentService_App
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -31,11 +29,12 @@ public class PaymentAppService : IPaymentService_App
         {
             OrderId = order.Id,
             Amount = order.TotalAmount,
-            PaymentType = PaymentType.Cash
+            PaymentType = PaymentType.Cash,
+            Status = PaymentStatus.Completed
         };
-        payment.MarkAsCompleted();
 
         await _unitOfWork.Payments.AddAsync(payment);
+        await CheckAndFreeTableAsync(order.TableId);
         await _unitOfWork.SaveChangesAsync();
 
         return ApiResponse<PaymentDto>.SuccessResponse(_mapper.Map<PaymentDto>(payment), "Nağd ödəniş qəbul edildi.");
@@ -79,10 +78,17 @@ public class PaymentAppService : IPaymentService_App
         if (payment == null) return ApiResponse<PaymentDto>.FailResponse("Ödəniş tapılmadı.");
 
         if (result.IsSuccess)
-            payment.MarkAsCompleted(result.TransactionId);
+        {
+            payment.Status = PaymentStatus.Completed;
+            payment.TransactionId = result.TransactionId;
+
+            var order = await _unitOfWork.Orders.GetByIdAsync(payment.OrderId);
+            if (order != null)
+                await CheckAndFreeTableAsync(order.TableId);
+        }
         else
         {
-            payment.MarkAsFailed();
+            payment.Status = PaymentStatus.Failed;
             payment.Note = result.ErrorMessage;
         }
 
@@ -100,10 +106,13 @@ public class PaymentAppService : IPaymentService_App
         var payment = await _unitOfWork.Payments.GetByIdAsync(paymentId);
         if (payment == null) return ApiResponse<PaymentDto>.FailResponse("Ödəniş tapılmadı.");
 
+        if (payment.Status != PaymentStatus.Completed)
+            return ApiResponse<PaymentDto>.FailResponse("Yalnız tamamlanmış ödənişlər geri qaytarıla bilər.");
+
         if (payment.PaymentType == PaymentType.Online && !string.IsNullOrEmpty(payment.TransactionId))
             await _paymentService.RefundPaymentAsync(payment.TransactionId, payment.Amount);
 
-        payment.Refund();
+        payment.Status = PaymentStatus.Refunded;
         _unitOfWork.Payments.Update(payment);
         await _unitOfWork.SaveChangesAsync();
 
@@ -123,5 +132,16 @@ public class PaymentAppService : IPaymentService_App
             CashPayments = payments.Count(p => p.PaymentType == PaymentType.Cash),
             OnlinePayments = payments.Count(p => p.PaymentType == PaymentType.Online)
         });
+    }
+
+    private async Task CheckAndFreeTableAsync(Guid tableId)
+    {
+        var unpaidOrders = await _unitOfWork.Orders.GetUnpaidOrdersByTableAsync(tableId);
+        if (!unpaidOrders.Any())
+        {
+            var table = await _unitOfWork.Tables.GetByIdAsync(tableId);
+            if (table != null)
+                table.Status = TableStatus.Available;
+        }
     }
 }

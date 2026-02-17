@@ -22,27 +22,27 @@ public class Reservation : BaseEntity
     public Table Table { get; set; } = null!;
 
     
-    public void Confirm()
-    {
-        if (Status != ReservationStatus.Pending)
-            throw new InvalidOperationException("Yalnız gözləyən rezervasiyalar təsdiqlənə bilər.");
+    //public void Confirm()
+    //{
+    //    if (Status != ReservationStatus.Pending)
+    //        throw new InvalidOperationException("Yalnız gözləyən rezervasiyalar təsdiqlənə bilər.");
 
-        Status = ReservationStatus.Confirmed;
-    }
+    //    Status = ReservationStatus.Confirmed;
+    //}
 
-    public void Cancel()
-    {
-        if (Status == ReservationStatus.Completed)
-            throw new InvalidOperationException("Tamamlanmış rezervasiyalar ləğv edilə bilməz.");
+    //public void Cancel()
+    //{
+    //    if (Status == ReservationStatus.Completed)
+    //        throw new InvalidOperationException("Tamamlanmış rezervasiyalar ləğv edilə bilməz.");
 
-        Status = ReservationStatus.Cancelled;
-    }
+    //    Status = ReservationStatus.Cancelled;
+    //}
 
-    public void Complete()
-    {
-        if (Status != ReservationStatus.Confirmed)
-            throw new InvalidOperationException("Yalnız təsdiqlənmiş rezervasiyalar tamamlana bilər.");
+    //public void Complete()
+    //{
+    //    if (Status != ReservationStatus.Confirmed)
+    //        throw new InvalidOperationException("Yalnız təsdiqlənmiş rezervasiyalar tamamlana bilər.");
 
-        Status = ReservationStatus.Completed;
-    }
+    //    Status = ReservationStatus.Completed;
+    //}
 }

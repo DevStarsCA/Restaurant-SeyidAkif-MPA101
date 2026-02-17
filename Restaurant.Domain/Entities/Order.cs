@@ -24,47 +24,47 @@ public class Order : AuditableEntity
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
-    public void CalculateTotal()
-    {
-        TotalAmount = OrderItems.Sum(oi => oi.GetSubTotal());
-    }
+    //public void CalculateTotal()
+    //{
+    //    TotalAmount = OrderItems.Sum(oi => oi.GetSubTotal());
+    //}
 
-    public void MarkAsPreparing()
-    {
-        if (Status != OrderStatus.Pending)
-            throw new InvalidOperationException("Yalnız gözləyən sifarişlər hazırlanmağa başlaya bilər.");
+    //public void MarkAsPreparing()
+    //{
+    //    if (Status != OrderStatus.Pending)
+    //        throw new InvalidOperationException("Yalnız gözləyən sifarişlər hazırlanmağa başlaya bilər.");
 
-        Status = OrderStatus.Preparing;
-    }
+    //    Status = OrderStatus.Preparing;
+    //}
 
-    public void MarkAsReady()
-    {
-        if (Status != OrderStatus.Preparing)
-            throw new InvalidOperationException("Yalnız hazırlanan sifarişlər hazır olaraq işarələnə bilər.");
+    //public void MarkAsReady()
+    //{
+    //    if (Status != OrderStatus.Preparing)
+    //        throw new InvalidOperationException("Yalnız hazırlanan sifarişlər hazır olaraq işarələnə bilər.");
 
-        Status = OrderStatus.Ready;
-    }
+    //    Status = OrderStatus.Ready;
+    //}
 
-    public void MarkAsDelivered()
-    {
-        if (Status != OrderStatus.Ready)
-            throw new InvalidOperationException("Yalnız hazır sifarişlər çatdırılmış olaraq işarələnə bilər.");
+    //public void MarkAsDelivered()
+    //{
+    //    if (Status != OrderStatus.Ready)
+    //        throw new InvalidOperationException("Yalnız hazır sifarişlər çatdırılmış olaraq işarələnə bilər.");
 
-        Status = OrderStatus.Delivered;
-    }
+    //    Status = OrderStatus.Delivered;
+    //}
 
-    public void Cancel()
-    {
-        if (Status == OrderStatus.Ready || Status == OrderStatus.Delivered)
-            throw new InvalidOperationException("Hazır və ya çatdırılmış sifarişlər ləğv edilə bilməz.");
+    //public void Cancel()
+    //{
+    //    if (Status == OrderStatus.Ready || Status == OrderStatus.Delivered)
+    //        throw new InvalidOperationException("Hazır və ya çatdırılmış sifarişlər ləğv edilə bilməz.");
 
-        Status = OrderStatus.Cancelled;
-    }
+    //    Status = OrderStatus.Cancelled;
+    //}
 
-    public static string GenerateOrderNumber()
-    {
-        return $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
-    }
+    //public static string GenerateOrderNumber()
+    //{
+    //    return $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
+    //}
 }
 
 

@@ -5,13 +5,8 @@ using Restaurant.Application.Interfaces;
 using Restaurant.Domain.Entities;
 using Restaurant.Domain.Enums;
 using Restaurant.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Restaurant.Application.Services;
+namespace Application.Services;
 
 public class OrderService : IOrderService
 {
@@ -76,7 +71,7 @@ public class OrderService : IOrderService
 
         var order = new Order
         {
-            OrderNumber = Order.GenerateOrderNumber(),
+            OrderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}",
             TableId = dto.TableId,
             Note = dto.Note,
             Status = OrderStatus.Pending
@@ -92,7 +87,7 @@ public class OrderService : IOrderService
             });
         }
 
-        order.CalculateTotal();
+        order.TotalAmount = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
         await _unitOfWork.Orders.AddAsync(order);
         await _unitOfWork.BasketItems.ClearBasketByTableIdAsync(dto.TableId);
 
@@ -110,15 +105,20 @@ public class OrderService : IOrderService
         var order = await _unitOfWork.Orders.GetOrderWithDetailsAsync(dto.OrderId);
         if (order == null) return ApiResponse<OrderDto>.FailResponse("Sifariş tapılmadı.");
 
-        switch (dto.Status)
+        var validTransition = (order.Status, dto.Status) switch
         {
-            case OrderStatus.Preparing: order.MarkAsPreparing(); break;
-            case OrderStatus.Ready: order.MarkAsReady(); break;
-            case OrderStatus.Delivered: order.MarkAsDelivered(); break;
-            case OrderStatus.Cancelled: order.Cancel(); break;
-            default: return ApiResponse<OrderDto>.FailResponse("Yanlış status.");
-        }
+            (OrderStatus.Pending, OrderStatus.Preparing) => true,
+            (OrderStatus.Preparing, OrderStatus.Ready) => true,
+            (OrderStatus.Ready, OrderStatus.Delivered) => true,
+            (OrderStatus.Pending, OrderStatus.Cancelled) => true,
+            (OrderStatus.Preparing, OrderStatus.Cancelled) => true,
+            _ => false
+        };
 
+        if (!validTransition)
+            return ApiResponse<OrderDto>.FailResponse($"'{order.Status}' statusundan '{dto.Status}' statusuna keçid mümkün deyil.");
+
+        order.Status = dto.Status;
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
 

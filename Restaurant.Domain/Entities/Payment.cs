@@ -21,22 +21,22 @@ public class Payment : AuditableEntity
 
     public Order Order { get; set; } = null!;
 
-    public void MarkAsCompleted(string? transactionId = null)
-    {
-        Status = PaymentStatus.Completed;
-        TransactionId = transactionId;
-    }
+    //public void MarkAsCompleted(string? transactionId = null)
+    //{
+    //    Status = PaymentStatus.Completed;
+    //    TransactionId = transactionId;
+    //}
 
-    public void MarkAsFailed()
-    {
-        Status = PaymentStatus.Failed;
-    }
+    //public void MarkAsFailed()
+    //{
+    //    Status = PaymentStatus.Failed;
+    //}
 
-    public void Refund()
-    {
-        if (Status != PaymentStatus.Completed)
-            throw new InvalidOperationException("Yalnız tamamlanmış ödənişlər geri qaytarıla bilər.");
+    //public void Refund()
+    //{
+    //    if (Status != PaymentStatus.Completed)
+    //        throw new InvalidOperationException("Yalnız tamamlanmış ödənişlər geri qaytarıla bilər.");
 
-        Status = PaymentStatus.Refunded;
-    }
+    //    Status = PaymentStatus.Refunded;
+    //}
 }

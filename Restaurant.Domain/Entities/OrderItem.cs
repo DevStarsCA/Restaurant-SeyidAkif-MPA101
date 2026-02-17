@@ -18,8 +18,8 @@ public class OrderItem : BaseEntity
     public Order Order { get; set; } = null!;
     public Product Product { get; set; } = null!;
 
-    public decimal GetSubTotal()
-    {
-        return UnitPrice * Quantity;
-    }
+    //public decimal GetSubTotal()
+    //{
+    //    return UnitPrice * Quantity;
+    //}
 }

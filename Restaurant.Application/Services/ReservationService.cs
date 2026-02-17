@@ -6,8 +6,6 @@ using Restaurant.Domain.Entities;
 using Restaurant.Domain.Enums;
 using Restaurant.Domain.Interfaces;
 
-namespace Restaurant.Application.Services;
-
 public class ReservationService : IReservationService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -53,10 +51,20 @@ public class ReservationService : IReservationService
 
         switch (dto.Status)
         {
-            case ReservationStatus.Confirmed: reservation.Confirm(); break;
-            case ReservationStatus.Cancelled: reservation.Cancel(); break;
+            case ReservationStatus.Confirmed:
+                if (reservation.Status != ReservationStatus.Pending)
+                    return ApiResponse<ReservationDto>.FailResponse("Yalnız gözləyən rezervasiyalar təsdiqlənə bilər.");
+                reservation.Status = ReservationStatus.Confirmed;
+                break;
+            case ReservationStatus.Cancelled:
+                if (reservation.Status == ReservationStatus.Completed)
+                    return ApiResponse<ReservationDto>.FailResponse("Tamamlanmış rezervasiyalar ləğv edilə bilməz.");
+                reservation.Status = ReservationStatus.Cancelled;
+                break;
             case ReservationStatus.Completed:
-                reservation.Complete();
+                if (reservation.Status != ReservationStatus.Confirmed)
+                    return ApiResponse<ReservationDto>.FailResponse("Yalnız təsdiqlənmiş rezervasiyalar tamamlana bilər.");
+                reservation.Status = ReservationStatus.Completed;
                 var table = await _unitOfWork.Tables.GetByIdAsync(reservation.TableId);
                 if (table != null) table.Status = TableStatus.Occupied;
                 break;
