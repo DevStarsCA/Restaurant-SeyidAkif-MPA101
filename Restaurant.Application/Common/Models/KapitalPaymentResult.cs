@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Common.Models;
 
-public class PaymentResult
+public class KapitalPaymentResult
 {
     public bool IsSuccess { get; set; }
-    public string? TransactionId { get; set; }
-    public string? PaymentUrl { get; set; }
-    public string? SessionId { get; set; }
+    public int? PurchaseId { get; set; }
+    public string? HppUrl { get; set; }
+    public string? Password { get; set; }
+    public string? Secret { get; set; }
     public string? ErrorMessage { get; set; }
 }

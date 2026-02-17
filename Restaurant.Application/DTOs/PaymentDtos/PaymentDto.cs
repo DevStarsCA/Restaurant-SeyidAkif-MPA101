@@ -15,6 +15,7 @@ public class PaymentDto
     public string PaymentTypeText => PaymentType.ToString();
     public PaymentStatus Status { get; set; }
     public string StatusText => Status.ToString();
+    public int? PurchaseId { get; set; }
     public string? TransactionId { get; set; }
     public DateTime PaymentDate { get; set; }
     public Guid OrderId { get; set; }

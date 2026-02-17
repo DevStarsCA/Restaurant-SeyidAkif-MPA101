@@ -1,9 +1,15 @@
 ﻿namespace Restaurant.Domain.Enums;
 
 public enum PaymentStatus
-    {
-        Pending,        // Gözləyir
-        Completed,      // Ödənilib
-        Failed,         // Uğursuz
-        Refunded        // Geri qaytarılıb
-    }
+{
+    Pending,
+    Completed,
+    Failed,
+    Refunded,
+    Cancelled,
+    Rejected,
+    Expired,
+    Authorized,
+    Declined,
+    Voided 
+}

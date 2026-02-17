@@ -3,14 +3,8 @@
 public class OnlinePaymentResponseDto
 {
     public Guid PaymentId { get; set; }
-    public string PaymentUrl { get; set; } = string.Empty;
-    public string SessionId { get; set; } = string.Empty;
+    public int PurchaseId { get; set; }
+    public string HppUrl { get; set; } = string.Empty;    // Kapital Bank ödəniş səhifəsi
     public string OrderNumber { get; set; } = string.Empty;
 }
-
-
-
-
-
-
 

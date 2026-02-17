@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using Restaurant.Application.Common;
 using Restaurant.Application.Common.Interfaces;
 using Restaurant.Application.DTOs.PaymentDtos;
@@ -11,13 +12,15 @@ public class PaymentAppService : IPaymentService_App
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IPaymentService _paymentService;
+    private readonly IKapitalBankService _paymentService;
+    private readonly IConfiguration _configuration;
 
-    public PaymentAppService(IUnitOfWork unitOfWork, IMapper mapper, IPaymentService paymentService)
+    public PaymentAppService(IUnitOfWork unitOfWork, IMapper mapper, IKapitalBankService paymentService, IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _paymentService = paymentService;
+        _configuration = configuration;
     }
 
     public async Task<ApiResponse<PaymentDto>> CreateCashPaymentAsync(Guid orderId)
@@ -45,7 +48,14 @@ public class PaymentAppService : IPaymentService_App
         var order = await _unitOfWork.Orders.GetOrderWithDetailsAsync(orderId);
         if (order == null) return ApiResponse<OnlinePaymentResponseDto>.FailResponse("Sifariş tapılmadı.");
 
-        var result = await _paymentService.CreatePaymentAsync(order.TotalAmount, order.OrderNumber, $"Sifariş: {order.OrderNumber}");
+        var redirectUrl = _configuration["KapitalBank:CallbackUrl"]!;
+
+        var result = await _paymentService.CreatePaymentAsync(
+            order.TotalAmount,
+            "AZN",
+            $"Sifariş: {order.OrderNumber}",
+            redirectUrl);
+
         if (!result.IsSuccess)
             return ApiResponse<OnlinePaymentResponseDto>.FailResponse($"Ödəniş yaradıla bilmədi: {result.ErrorMessage}");
 
@@ -54,7 +64,10 @@ public class PaymentAppService : IPaymentService_App
             OrderId = order.Id,
             Amount = order.TotalAmount,
             PaymentType = PaymentType.Online,
-            TransactionId = result.SessionId
+            PurchaseId = result.PurchaseId,
+            Password = result.Password,
+            Secret = result.Secret,
+            Status = PaymentStatus.Pending
         };
 
         await _unitOfWork.Payments.AddAsync(payment);
@@ -63,42 +76,43 @@ public class PaymentAppService : IPaymentService_App
         return ApiResponse<OnlinePaymentResponseDto>.SuccessResponse(new OnlinePaymentResponseDto
         {
             PaymentId = payment.Id,
-            PaymentUrl = result.PaymentUrl!,
-            SessionId = result.SessionId!,
+            PurchaseId = result.PurchaseId!.Value,
+            HppUrl = result.HppUrl!,
             OrderNumber = order.OrderNumber
         }, "Ödəniş səhifəsinə yönləndirilir.");
     }
 
-    public async Task<ApiResponse<PaymentDto>> HandleCallbackAsync(string orderId, string sessionId)
+    public async Task<ApiResponse<PaymentDto>> CheckPaymentStatusAsync(Guid paymentId)
     {
-        var result = await _paymentService.CheckPaymentStatusAsync(orderId, sessionId);
-        var payments = await _unitOfWork.Payments.GetAsync(p => p.TransactionId == sessionId);
-        var payment = payments.FirstOrDefault();
-
+        var payment = await _unitOfWork.Payments.GetByIdAsync(paymentId);
         if (payment == null) return ApiResponse<PaymentDto>.FailResponse("Ödəniş tapılmadı.");
 
-        if (result.IsSuccess)
-        {
-            payment.Status = PaymentStatus.Completed;
-            payment.TransactionId = result.TransactionId;
+        if (!payment.PurchaseId.HasValue || string.IsNullOrEmpty(payment.Password))
+            return ApiResponse<PaymentDto>.FailResponse("Bu ödəniş üçün Kapital Bank məlumatı yoxdur.");
 
+        var result = await _paymentService.GetPaymentInfoAsync(payment.PurchaseId.Value, payment.Password);
+
+        if (!result.IsSuccess)
+            return ApiResponse<PaymentDto>.FailResponse($"Status yoxlama uğursuz: {result.ErrorMessage}");
+
+        // Kapital Bank statusunu bizim statusa çevir
+        payment.Status = result.Status;
+
+        if (result.Status == PaymentStatus.Completed)
+        {
             var order = await _unitOfWork.Orders.GetByIdAsync(payment.OrderId);
             if (order != null)
                 await CheckAndFreeTableAsync(order.TableId);
-        }
-        else
-        {
-            payment.Status = PaymentStatus.Failed;
-            payment.Note = result.ErrorMessage;
         }
 
         _unitOfWork.Payments.Update(payment);
         await _unitOfWork.SaveChangesAsync();
 
         var dto = _mapper.Map<PaymentDto>(payment);
-        return result.IsSuccess
+
+        return payment.Status == PaymentStatus.Completed
             ? ApiResponse<PaymentDto>.SuccessResponse(dto, "Ödəniş tamamlandı.")
-            : ApiResponse<PaymentDto>.FailResponse($"Ödəniş uğursuz: {result.ErrorMessage}");
+            : ApiResponse<PaymentDto>.SuccessResponse(dto, $"Ödəniş statusu: {payment.Status}");
     }
 
     public async Task<ApiResponse<PaymentDto>> RefundAsync(Guid paymentId)
@@ -109,8 +123,12 @@ public class PaymentAppService : IPaymentService_App
         if (payment.Status != PaymentStatus.Completed)
             return ApiResponse<PaymentDto>.FailResponse("Yalnız tamamlanmış ödənişlər geri qaytarıla bilər.");
 
-        if (payment.PaymentType == PaymentType.Online && !string.IsNullOrEmpty(payment.TransactionId))
-            await _paymentService.RefundPaymentAsync(payment.TransactionId, payment.Amount);
+        if (payment.PaymentType == PaymentType.Online && payment.PurchaseId.HasValue && !string.IsNullOrEmpty(payment.Password))
+        {
+            var result = await _paymentService.RefundPaymentAsync(payment.PurchaseId.Value, payment.Password, payment.Amount);
+            if (!result.IsSuccess)
+                return ApiResponse<PaymentDto>.FailResponse($"Geri qaytarma uğursuz: {result.ErrorMessage}");
+        }
 
         payment.Status = PaymentStatus.Refunded;
         _unitOfWork.Payments.Update(payment);

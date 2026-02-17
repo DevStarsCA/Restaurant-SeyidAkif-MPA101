@@ -12,6 +12,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.Amount).HasColumnType("decimal(18,2)");
         builder.Property(x => x.PaymentType).HasConversion<int>();
         builder.Property(x => x.Status).HasConversion<int>();
+        builder.Property(x => x.Password).HasMaxLength(200);
+        builder.Property(x => x.Secret).HasMaxLength(200);
         builder.Property(x => x.TransactionId).HasMaxLength(200);
         builder.Property(x => x.Note).HasMaxLength(500);
 

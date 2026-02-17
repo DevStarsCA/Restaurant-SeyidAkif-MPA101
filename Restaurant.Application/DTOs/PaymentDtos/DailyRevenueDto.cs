@@ -9,9 +9,3 @@ public class DailyRevenueDto
     public int OnlinePayments { get; set; }
 }
 
-
-
-
-
-
-
