@@ -12,14 +12,14 @@ public class PaymentAppService : IPaymentService_App
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IKapitalBankService _paymentService;
+    private readonly IKapitalBankService _kapitalBankService;
     private readonly IConfiguration _configuration;
 
     public PaymentAppService(IUnitOfWork unitOfWork, IMapper mapper, IKapitalBankService paymentService, IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _paymentService = paymentService;
+        _kapitalBankService = paymentService;
         _configuration = configuration;
     }
 
@@ -50,7 +50,7 @@ public class PaymentAppService : IPaymentService_App
 
         var redirectUrl = _configuration["KapitalBank:CallbackUrl"]!;
 
-        var result = await _paymentService.CreatePaymentAsync(
+        var result = await _kapitalBankService.CreatePaymentAsync(
             order.TotalAmount,
             "AZN",
             $"Sifariş: {order.OrderNumber}",
@@ -90,7 +90,7 @@ public class PaymentAppService : IPaymentService_App
         if (!payment.PurchaseId.HasValue || string.IsNullOrEmpty(payment.Password))
             return ApiResponse<PaymentDto>.FailResponse("Bu ödəniş üçün Kapital Bank məlumatı yoxdur.");
 
-        var result = await _paymentService.GetPaymentInfoAsync(payment.PurchaseId.Value, payment.Password);
+        var result = await _kapitalBankService.GetPaymentInfoAsync(payment.PurchaseId.Value, payment.Password);
 
         if (!result.IsSuccess)
             return ApiResponse<PaymentDto>.FailResponse($"Status yoxlama uğursuz: {result.ErrorMessage}");
@@ -125,7 +125,7 @@ public class PaymentAppService : IPaymentService_App
 
         if (payment.PaymentType == PaymentType.Online && payment.PurchaseId.HasValue && !string.IsNullOrEmpty(payment.Password))
         {
-            var result = await _paymentService.RefundPaymentAsync(payment.PurchaseId.Value, payment.Password, payment.Amount);
+            var result = await _kapitalBankService.RefundPaymentAsync(payment.PurchaseId.Value, payment.Password, payment.Amount);
             if (!result.IsSuccess)
                 return ApiResponse<PaymentDto>.FailResponse($"Geri qaytarma uğursuz: {result.ErrorMessage}");
         }

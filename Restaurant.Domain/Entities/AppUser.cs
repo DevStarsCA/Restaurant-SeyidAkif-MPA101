@@ -10,5 +10,6 @@ namespace Restaurant.Domain.Entities;
 public class AppUser : IdentityUser
 {
     public string FullName { get; set; } = string.Empty;
-    public string? Role { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
 }
