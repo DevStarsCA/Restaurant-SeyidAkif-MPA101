@@ -40,7 +40,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -59,6 +59,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseMiddleware<Restaurant.API.Middlewares.ExceptionMiddleware>();
 app.UseCors("AllowAll");
 app.UseAuthentication();

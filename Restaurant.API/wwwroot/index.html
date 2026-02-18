@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/plugins/bootstrap.min.css">
+  <link rel="stylesheet" href="css/plugins/font-awesome.min.css">
+  <link rel="stylesheet" href="css/plugins/swiper.min.css">
+  <link rel="stylesheet" href="css/plugins/fancybox.min.css">
+  <link rel="stylesheet" href="css/plugins/datepicker.css">
+  <link rel="stylesheet" href="css/plugins/nice-select.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Restoran - Ana Səhifə</title>
+</head>
+
+<body>
+
+    <div class="tst-main-overlay">
+        <div class="tst-preloader-frame">
+            <div class="tst-preloader">
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="tst-app" class="tst-app">
+
+        <!-- top bar frame -->
+        <div class="tst-menu-frame">
+            <div class="tst-dynamic-menu" id="tst-dynamic-menu">
+                <div class="tst-menu">
+                    <img src="img/logo-sm.svg" class="tst-logo" alt="Restoran">
+                    <nav>
+                        <ul>
+                            <li class="current-menu-item"><a href="index.html">Ana Səhifə</a></li>
+                            <li><a href="menu.html">Menyu</a></li>
+                            <li><a href="about.html">Haqqımızda</a></li>
+                            <li><a href="contact.html">Əlaqə</a></li>
+                        </ul>
+                    </nav>
+                    <div class="tst-menu-right">
+                        <a href="#." class="tst-btn tst-res-btn" data-no-swup>Rezervasiya</a>
+                        <!-- Səbət - yalnız QR ilə girəndə görünür -->
+                        <div class="tst-minicart" id="minicart-container" style="display:none;">
+                            <a href="#." class="tst-cart">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+                                    <path d="M87.7,33.1l-0.8-10.8C86,10.4,76,1,64,1s-22.1,9.4-22.9,21.3l-0.8,10.8H28.8c-4.7,0-8.6,3.7-9,8.4l-5.4,75.9c0,0,0,0,0,0 c-0.2,2.5,0.7,5,2.4,6.8s4.1,2.9,6.6,2.9h81.3c2.5,0,4.9-1,6.6-2.9c1.7-1.8,2.6-4.3,2.4-6.8l-5.4-75.2c-0.4-5.1-4.6-9-9.7-9H87.7z M47.1,22.7C47.7,13.9,55.1,7,64,7s16.3,6.9,16.9,15.7l0.7,10.4H46.3L47.1,22.7z M102.3,42.6l5.4,75.2c0.1,0.8-0.2,1.6-0.8,2.3 c-0.6,0.6-1.4,1-2.2,1H23.4c-0.8,0-1.6-0.3-2.2-1s-0.9-1.4-0.8-2.3h0l5.4-75.9c0.1-1.6,1.4-2.8,3-2.8h11.1l-0.6,8 c-0.1,1.7,1.1,3.1,2.8,3.2c0.1,0,0.1,0,0.2,0c1.6,0,2.9-1.2,3-2.8l0.6-8.4h36.2l0.6,8.4c0.1,1.7,1.5,2.9,3.2,2.8 c1.7-0.1,2.9-1.5,2.8-3.2l-0.6-8h10.5C100.5,39.1,102.1,40.6,102.3,42.6z" />
+                                </svg>
+                                <div class="tst-cart-number" id="cart-count">0</div>
+                            </a>
+                            <div class="tst-minicart-window">
+                                <div class="tst-minicart-header">
+                                    <div class="tst-suptitle tst-suptitle-center"></div>
+                                    <h5>Sifarişiniz</h5>
+                                </div>
+                                <ul class="woocommerce-mini-cart cart_list product_list_widget" id="minicart-items">
+                                </ul>
+                                <p class="woocommerce-mini-cart__total total">
+                                    <strong>Cəmi:</strong> <span class="woocommerce-Price-amount amount" id="minicart-total"><bdi><span class="woocommerce-Price-currencySymbol">₼</span>0.00</bdi></span>
+                                </p>
+                                <p class="woocommerce-mini-cart__buttons buttons">
+                                    <a href="cart.html" class="button checkout wc-forward">Sifariş ver</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="tst-menu-button-frame">
+                            <div class="tst-menu-btn">
+                                <div class="tst-burger">
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- top bar frame end -->
+
+        <div id="tst-dynamic-banner" class="tst-dynamic-banner">
+
+            <!-- banner -->
+            <div class="tst-banner">
+                <div class="tst-cover-frame">
+                    <img src="img/banners/banner-1.jpg" alt="cover" class="tst-cover tst-parallax">
+                    <div class="tst-overlay"></div>
+                </div>
+                <div class="tst-banner-content-frame">
+                    <div class="container">
+                        <div class="tst-main-title-frame">
+                            <div class="tst-main-title">
+                                <div class="tst-suptitle tst-suptitle-mobile-center tst-text-shadow tst-white-2 tst-mb-15">Xoş gəlmisiniz!</div>
+                                <h1 class="tst-white-2 tst-text-shadow tst-mb-30">Restoranımıza<br>Xoş Gəlmisiniz</h1>
+                                <div class="tst-text tst-text-shadow tst-text-lg tst-white-2 tst-mb-30">Ən təzə inqrediyentlərdən hazırlanmış<br>ləziz yeməklərimizi dadın.</div>
+                                <a href="#." class="tst-btn tst-btn-lg tst-btn-shadow tst-res-btn tst-mr-30">Rezervasiya</a>
+                                <a href="menu.html" class="tst-label tst-white-2">Menyuya bax</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- banner end -->
+
+        </div>
+
+        <div id="tst-dynamic-content" class="tst-dynamic-content">
+
+            <div class="tst-content-frame">
+                <div class="tst-content-box">
+
+                    <!-- scroll hint -->
+                    <div class="container">
+                        <a href="#tst-dynamic-content" class="tst-scroll-hint-frame tst-anchor-scroll">
+                            <div class="tst-scroll-hint"></div>
+                        </a>
+                    </div>
+                    <!-- scroll hint end -->
+
+                    <div class="container tst-p-60-0">
+
+                        <div class="row align-items-center flex-sm-row-reverse">
+
+                            <div class="col-lg-6">
+                                <div class="tst-mb-60">
+                                    <div class="tst-suptitle tst-mb-15">Haqqımızda</div>
+                                    <h3 class="tst-mb-30">Restoranımıza<br>dəvət edirik</h3>
+                                    <p class="tst-text tst-mb-30">Biz ən keyfiyyətli inqrediyentlərdən istifadə edərək, hər bir yeməyi sənət əsərinə çeviririk. Təcrübəli aşpazlarımız sizin üçün unudulmaz dad təcrübəsi yaradır. Rahat atmosfer və səmimi xidmətimizlə sizi gözləyirik.</p>
+                                    <a href="about.html" class="tst-btn tst-mr-30">Ətraflı</a>
+                                    <a href="#." class="tst-icon-link"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="#." class="tst-icon-link"><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="tst-about-cover tst-mb-60">
+                                    <img src="img/about.jpg" alt="cover" class="tst-cover">
+                                    <div class="tst-overlay"></div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="tst-spacer tst-spacer-only-bottom-space"></div>
+
+                        <div class="row">
+
+                            <div class="col-lg-12">
+                                <div class="text-center">
+                                    <div class="tst-suptitle tst-suptitle-center tst-mb-15">Xüsusiyyətlər</div>
+                                    <h3 class="tst-mb-30">Niyə bizi seçirlər?</h3>
+                                    <p class="tst-text tst-mb-60">Keyfiyyətli xidmət və ləziz yeməklər!</p>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="tst-icon-box tst-mb-60">
+                                    <img src="img/icons/1.svg" alt="icon" class="tst-mb-30">
+                                    <h5 class="tst-mb-30">Zəngin menyu</h5>
+                                    <div class="tst-text">Hər zövqə uyğun geniş menyu seçimlərimiz var. Milli və dünya mətbəxindən ləziz yeməklər.</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="tst-icon-box tst-mb-60">
+                                    <img src="img/icons/2.svg" alt="icon" class="tst-mb-30">
+                                    <h5 class="tst-mb-30">Təzə inqrediyentlər</h5>
+                                    <div class="tst-text">Hər gün təzə və keyfiyyətli inqrediyentlərdən istifadə edirik. Dadın fərqini hiss edəcəksiniz.</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="tst-icon-box tst-mb-60">
+                                    <img src="img/icons/3.svg" alt="icon" class="tst-mb-30">
+                                    <h5 class="tst-mb-30">Təcrübəli aşpazlar</h5>
+                                    <div class="tst-text">Peşəkar aşpaz komandamız hər bir yeməyi sevgi ilə hazırlayır.</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="tst-spacer tst-spacer-only-bottom-space"></div>
+
+                        <!-- iş saatları -->
+                        <div class="tst-banner-sm">
+                            <div class="tst-cover-frame">
+                                <img src="img/menu/4.jpg" alt="cover" class="tst-cover">
+                                <div class="tst-overlay"></div>
+                            </div>
+                            <div class="row align-items-center">
+                                <div class="col-lg-8">
+                                    <div class="tst-text-frame">
+                                        <div class="tst-suptitle tst-suptitle-mobile-center tst-white-2 tst-mb-15">İş saatları</div>
+                                        <h2 class="tst-white-2 tst-mb-30">Biz hər gün sizinləyik</h2>
+                                        <p class="tst-text tst-white-2 tst-mb-30">Masa rezervasiyası üçün bizimlə əlaqə saxlayın.</p>
+                                        <div class="tst-btn-mobile">
+                                            <a href="#." class="tst-btn tst-res-btn tst-mr-30">Rezervasiya</a>
+                                            <a href="contact.html" class="tst-label tst-white-2">Əlaqə</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="tst-wh-frame">
+                                        <div class="tst-mb-30">
+                                            <div class="tst-label tst-mb-15">Bazar ertəsi - Cümə</div>
+                                            <div class="h5">10 <span class="tst-color">:</span> 00</div>
+                                            <div class="h5">23 <span class="tst-color">:</span> 00</div>
+                                        </div>
+                                        <div>
+                                            <div class="tst-label tst-mb-15">Şənbə - Bazar</div>
+                                            <div class="h5">11 <span class="tst-color">:</span> 00</div>
+                                            <div class="h5">00 <span class="tst-color">:</span> 00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- iş saatları end -->
+
+                        <div class="tst-spacer"></div>
+
+                        <div class="row">
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="tst-count tst-mb-70">
+                                    <div class="h3 tst-mb-15"><span class="tst-number" data-count="500">0</span><span class="tst-color">+</span></div>
+                                    <div class="tst-label">Gündəlik qonaqlar</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="tst-count tst-mb-70">
+                                    <div class="h3 tst-mb-15"><span class="tst-number" data-count="50">0</span><span class="tst-color">+</span></div>
+                                    <div class="tst-label">Menyu seçimi</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="tst-count tst-mb-70">
+                                    <div class="h3 tst-mb-15"><span class="tst-number" data-count="100"></span><sup class="tst-color">%</sup></div>
+                                    <div class="tst-label">Müsbət rəy</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="tst-count tst-mb-70">
+                                    <div class="h3 tst-mb-15"><span class="tst-number" data-count="10">0</span><span class="tst-color">+</span></div>
+                                    <div class="tst-label">İllik təcrübə</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="tst-content-frame">
+                <div class="tst-content-box">
+
+                    <div class="container tst-p-60-60">
+
+                        <div class="row">
+
+                            <div class="col-lg-12">
+                                <div class="text-center">
+                                    <div class="tst-suptitle tst-suptitle-center tst-mb-15">Rəylər</div>
+                                    <h3 class="tst-mb-30">Qonaqlarımız nə deyir</h3>
+                                    <p class="tst-text">Müştərilərimizin fikirləri bizim üçün çox dəyərlidir.</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+
+                                <div class="swiper-container tst-testimonials-slider tst-cursor-scroll">
+                                    <div class="swiper-wrapper">
+                                        <div class="swiper-slide">
+                                            <div class="tst-testimonial-card">
+                                                <div class="tst-quote">"</div>
+                                                <h5 class="tst-mb-30">Çox ləziz idi!</h5>
+                                                <p class="tst-text">Yeməklərin keyfiyyəti və xidmət mükəmməl idi. Ailəmlə birlikdə çox gözəl vaxt keçirdik. Mütləq yenidən gələcəyik!</p>
+                                                <div class="tst-spacer-sm"></div>
+                                                <div class="tst-testimonial-bottom">
+                                                    <div class="tst-visitor">
+                                                        <img src="img/faces/1.jpg" alt="author">
+                                                        <h6>Aynur Məmmədova</h6>
+                                                    </div>
+                                                    <div class="tst-date">15.01.26</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <div class="tst-testimonial-card">
+                                                <div class="tst-quote">"</div>
+                                                <h5 class="tst-mb-30">Əla atmosfer!</h5>
+                                                <p class="tst-text">QR menyu sistemi çox rahat idi. Telefondan sifariş verdik, çox tez gəldi. Müasir və keyfiyyətli xidmət üçün təşəkkürlər!</p>
+                                                <div class="tst-spacer-sm"></div>
+                                                <div class="tst-testimonial-bottom">
+                                                    <div class="tst-visitor">
+                                                        <img src="img/faces/2.jpg" alt="author">
+                                                        <h6>Elvin Həsənov</h6>
+                                                    </div>
+                                                    <div class="tst-date">20.01.26</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <div class="tst-testimonial-card">
+                                                <div class="tst-quote">"</div>
+                                                <h5 class="tst-mb-30">Yenə gələcəm!</h5>
+                                                <p class="tst-text">Restoran çox gözəl dizayn edilib. Yeməklər həm dadlı, həm də gözəl təqdim olunur. Online rezervasiya da çox rahat idi.</p>
+                                                <div class="tst-spacer-sm"></div>
+                                                <div class="tst-testimonial-bottom">
+                                                    <div class="tst-visitor">
+                                                        <img src="img/faces/3.jpg" alt="author">
+                                                        <h6>Nigar Əliyeva</h6>
+                                                    </div>
+                                                    <div class="tst-date">05.02.26</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <div class="tst-testimonial-card">
+                                                <div class="tst-quote">"</div>
+                                                <h5 class="tst-mb-30">Ən yaxşı restoran!</h5>
+                                                <p class="tst-text">Dostlarımla ad günü keçirdik. Hər şey mükəmməl idi - xidmət, yeməklər, atmosfer. Hər kəsə tövsiyə edirəm!</p>
+                                                <div class="tst-spacer-sm"></div>
+                                                <div class="tst-testimonial-bottom">
+                                                    <div class="tst-visitor">
+                                                        <img src="img/faces/4.jpg" alt="author">
+                                                        <h6>Rəşad Quliyev</h6>
+                                                    </div>
+                                                    <div class="tst-date">10.02.26</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="col-lg-12">
+                                <div class="tst-slider-navigation">
+                                    <a href="about.html" class="tst-btn">Haqqımızda</a>
+                                    <div class="tst-slider-pagination tst-testi-pagination"></div>
+                                    <div class="tst-nav tst-right">
+                                        <div class="tst-label">Slider</div>
+                                        <div class="tst-slider-btn tst-testi-prev"><i class="fas fa-arrow-left"></i></div>
+                                        <div class="tst-slider-btn tst-testi-next"><i class="fas fa-arrow-right"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- footer -->
+        <footer class="tst-white tst-fade-down">
+            <div class="container">
+                <div class="tst-footer-top">
+                    <img src="img/logo-sm-white.svg" class="tst-logo" alt="Restoran">
+                    <div class="tst-social">
+                        <a href="#." class="tst-icon-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#." class="tst-icon-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="tst-spacer tst-white"></div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="tst-mb-60">
+                            <h5 class="tst-mb-30 tst-text-shadow">Haqqımızda</h5>
+                            <div class="tst-text tst-text-shadow tst-mb-30">Biz ən keyfiyyətli inqrediyentlərdən istifadə edərək, sizin üçün unudulmaz dad təcrübəsi yaradırıq. Peşəkar komandamız hər zaman sizin xidmətinizdədir.</div>
+                            <a href="about.html" class="tst-label tst-color">Ətraflı</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="tst-mb-60">
+                            <h5 class="tst-mb-30 tst-text-shadow">Əlaqə</h5>
+                            <ul class="tst-footer-contact tst-text-shadow tst-mb-30">
+                                <li><span class="tst-label">Zəng :</span><span class="tst-text">+994 (50) 555 55 55</span></li>
+                                <li><span class="tst-label">Email :</span><span class="tst-text">info@restoran.az</span></li>
+                                <li><span class="tst-label">Ünvan :</span><span class="tst-text">Bakı, Nizami küç. 123</span></li>
+                            </ul>
+                            <a href="contact.html" class="tst-label tst-color">Ətraflı</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="tst-mb-60">
+                            <h5 class="tst-mb-30 tst-text-shadow">İş saatları</h5>
+                            <ul class="tst-footer-contact tst-text-shadow tst-mb-30">
+                                <li><span class="tst-label">B.e - Cümə :</span><span class="tst-text">10:00 - 23:00</span></li>
+                                <li><span class="tst-label">Şənbə - Bazar :</span><span class="tst-text">11:00 - 00:00</span></li>
+                            </ul>
+                            <a href="#." class="tst-label tst-color tst-res-btn">Rezervasiya et</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="tst-spacer tst-white tst-spacer-only-bottom-space"></div>
+                <div class="tst-footer-bottom">
+                    <div class="tst-text">&copy; Restoran 2026. Bütün hüquqlar qorunur.</div>
+                    <a href="#tst-app" class="tst-label tst-color tst-anchor-scroll">Yuxarı qalx</a>
+                </div>
+            </div>
+        </footer>
+        <!-- footer end -->
+        <!-- Reservation popup -->
+        <div class="tst-popup-bg">
+            <div class="tst-popup-frame">
+                <div class="tst-popup-body">
+                    <div class="tst-close-popup"><i class="fas fa-times"></i></div>
+                    <div class="text-center">
+                        <div class="tst-suptitle tst-suptitle-center"></div>
+                        <h4 class="tst-mb-60">Masa Rezervasiyası</h4>
+                    </div>
+                    <div id="reservation-message" style="display:none;" class="text-center tst-mb-30">
+                        <div class="tst-text" id="reservation-message-text"></div>
+                    </div>
+                    <form id="reservation-form">
+                        <div class="row">
+                            <div class="col-6 col-md-4">
+                                <input type="text" id="res-name" placeholder="Ad Soyad" required>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <input type="text" id="res-phone" placeholder="Telefon" required>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <input type="email" id="res-email" placeholder="Email (ixtiyari)">
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <select id="res-guests" class="wide">
+                                    <option data-display="Qonaq sayı">Seçin</option>
+                                    <option value="1">1 nəfər</option>
+                                    <option value="2">2 nəfər</option>
+                                    <option value="3">3 nəfər</option>
+                                    <option value="4">4 nəfər</option>
+                                    <option value="5">5 nəfər</option>
+                                    <option value="6">6+ nəfər</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="datepicker__container">
+                                    <input id="res-date" data-language='az' type='text' class="datepicker-here" data-position="bottom left" placeholder="Tarix" required>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <select id="res-time" class="wide">
+                                    <option data-display="Saat">Seçin</option>
+                                    <option value="10:00">10:00</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option>
+                                    <option value="13:00">13:00</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="15:00">15:00</option>
+                                    <option value="16:00">16:00</option>
+                                    <option value="17:00">17:00</option>
+                                    <option value="18:00">18:00</option>
+                                    <option value="19:00">19:00</option>
+                                    <option value="20:00">20:00</option>
+                                    <option value="21:00">21:00</option>
+                                    <option value="22:00">22:00</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <textarea id="res-note" rows="4" placeholder="Qeyd (ixtiyari)"></textarea>
+                            </div>
+                        </div>
+                        <button class="tst-btn" type="submit">Rezervasiya et</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- popup end -->
+
+    </div>
+
+    <script src="js/plugins/jquery.min.js"></script>
+    <script src="js/plugins/swup.min.js"></script>
+    <script src="js/plugins/swiper.min.js"></script>
+    <script src="js/plugins/smooth-scroll.js"></script>
+    <script src="js/plugins/fancybox.min.js"></script>
+    <script src="js/plugins/datepicker.js"></script>
+    <script src="js/plugins/jquery.nice-select.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- API Script -->
+    <script>
+        const API_BASE = '/api';
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableId = urlParams.get('tableId');
+
+        $(document).ready(function () {
+            if (tableId) {
+                // QR ilə giriş - səbət göstər, rezervasiya gizlə
+                $('#minicart-container').show();
+                $('.tst-res-btn').hide();
+                $('.tst-popup-bg').remove();
+                $('nav ul').html(`
+                    <li><a href="index.html?tableId=${tableId}">Ana Səhifə</a></li>
+                    <li><a href="menu.html?tableId=${tableId}">Menyu</a></li>
+                    <li><a href="about.html?tableId=${tableId}">Haqqımızda</a></li>
+                    <li><a href="contact.html?tableId=${tableId}">Əlaqə</a></li>
+                `);
+            }
+
+            // Reservation form submit
+            $('#reservation-form').on('submit', async function (e) {
+                e.preventDefault();
+
+                const name = $('#res-name').val().trim();
+                const phone = $('#res-phone').val().trim();
+                const email = $('#res-email').val().trim();
+                const guests = $('#res-guests').val();
+                const dateStr = $('#res-date').val();
+                const time = $('#res-time').val();
+                const note = $('#res-note').val().trim();
+
+                if (!name || !phone || !guests || !dateStr || !time) {
+                    showResMessage('Zəhmət olmasa bütün vacib sahələri doldurun.', false);
+                    return;
+                }
+
+                const dateParts = dateStr.split('.');
+                const reservationDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                const timeParts = time.split(':');
+                reservationDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0);
+
+                try {
+                    const tablesRes = await fetch(`${API_BASE}/Tables`);
+                    const tablesData = await tablesRes.json();
+
+                    if (!tablesData.success || !tablesData.data || tablesData.data.length === 0) {
+                        showResMessage('Hal-hazırda boş masa yoxdur.', false);
+                        return;
+                    }
+
+                    const guestCount = parseInt(guests);
+                    const suitableTable = tablesData.data.find(t => t.capacity >= guestCount && t.status === 0);
+
+                    if (!suitableTable) {
+                        showResMessage('Hal-hazırda uyğun masa yoxdur.', false);
+                        return;
+                    }
+
+                    const response = await fetch(`${API_BASE}/Reservations`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            customerName: name, customerPhone: phone,
+                            customerEmail: email || null,
+                            reservationDate: reservationDate.toISOString(),
+                            guestCount: guestCount, note: note || null,
+                            tableId: suitableTable.id
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showResMessage('Rezervasiya uğurla yaradıldı!', true);
+                        $('#reservation-form')[0].reset();
+                        $('select').niceSelect('update');
+                    } else {
+                        showResMessage(data.message || 'Xəta baş verdi.', false);
+                    }
+                } catch (err) {
+                    showResMessage('Server xətası.', false);
+                }
+            });
+        });
+
+        function showResMessage(text, isSuccess) {
+            const msgEl = $('#reservation-message');
+            const textEl = $('#reservation-message-text');
+            textEl.text(text);
+            textEl.css('color', isSuccess ? '#4CAF50' : '#f44336');
+            msgEl.fadeIn();
+            if (isSuccess) {
+                setTimeout(() => {
+                    msgEl.fadeOut();
+                    $('.tst-popup-bg').removeClass('tst-active');
+                }, 3000);
+            }
+        }
+    </script>
+
+</body>
+
+</html>

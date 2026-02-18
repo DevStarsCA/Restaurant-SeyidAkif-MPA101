@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/plugins/bootstrap.min.css">
+  <link rel="stylesheet" href="css/plugins/font-awesome.min.css">
+  <link rel="stylesheet" href="css/plugins/swiper.min.css">
+  <link rel="stylesheet" href="css/plugins/fancybox.min.css">
+  <link rel="stylesheet" href="css/plugins/datepicker.css">
+  <link rel="stylesheet" href="css/plugins/nice-select.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Restoran - Menyu</title>
+  <style>
+    .tst-add-to-cart { cursor: pointer; transition: transform 0.3s; }
+    .tst-add-to-cart:hover { transform: scale(1.1); }
+    .tst-added { animation: cartPulse 0.5s ease; }
+    @keyframes cartPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .tst-category-filter { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 30px; }
+    .tst-category-filter .tst-filter-btn {
+      padding: 8px 20px; border: 1px solid #e0e0e0; border-radius: 30px;
+      background: transparent; cursor: pointer; transition: all 0.3s;
+      font-size: 14px; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .tst-category-filter .tst-filter-btn.active,
+    .tst-category-filter .tst-filter-btn:hover {
+      background: #c8a97e; color: #fff; border-color: #c8a97e;
+    }
+    .tst-menu-card-wrapper { transition: all 0.4s ease; }
+    .tst-menu-card-wrapper.hidden { display: none; }
+    .tst-qty-controls { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .tst-qty-btn {
+      width: 30px; height: 30px; border-radius: 50%; border: 1px solid #c8a97e;
+      background: transparent; color: #c8a97e; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+    }
+    .tst-qty-btn:hover { background: #c8a97e; color: #fff; }
+    .tst-qty-number { font-weight: 600; min-width: 20px; text-align: center; }
+    .tst-order-status-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+      background: #1a1a2e; color: #fff; padding: 15px 20px;
+      display: none; justify-content: space-between; align-items: center;
+    }
+    .tst-order-status-bar .tst-btn { padding: 8px 25px; font-size: 13px; }
+    .tst-order-total { font-size: 16px; font-weight: 600; }
+    .tst-loading { text-align: center; padding: 60px 0; }
+    .tst-loading-spinner {
+      width: 40px; height: 40px; border: 3px solid #e0e0e0;
+      border-top-color: #c8a97e; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 15px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+
+  <div class="tst-main-overlay">
+    <div class="tst-preloader-frame">
+      <div class="tst-preloader">
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="tst-app" class="tst-app">
+
+    <!-- top bar -->
+    <div class="tst-menu-frame">
+      <div class="tst-dynamic-menu" id="tst-dynamic-menu">
+        <div class="tst-menu">
+          <img src="img/logo-sm.svg" class="tst-logo" alt="Restoran">
+          <nav>
+            <ul>
+              <li><a href="index.html">Ana Səhifə</a></li>
+              <li class="current-menu-item"><a href="menu.html">Menyu</a></li>
+              <li><a href="about.html">Haqqımızda</a></li>
+              <li><a href="contact.html">Əlaqə</a></li>
+            </ul>
+          </nav>
+          <div class="tst-menu-right">
+            <!-- Rezervasiya - yalnız evdən girəndə -->
+            <a href="#." class="tst-btn tst-res-btn" id="nav-res-btn" data-no-swup>Rezervasiya</a>
+            <!-- Səbət - yalnız QR ilə girəndə -->
+            <div class="tst-minicart" id="minicart-container" style="display:none;">
+              <a href="#." class="tst-cart">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+                  <path d="M87.7,33.1l-0.8-10.8C86,10.4,76,1,64,1s-22.1,9.4-22.9,21.3l-0.8,10.8H28.8c-4.7,0-8.6,3.7-9,8.4l-5.4,75.9c0,0,0,0,0,0 c-0.2,2.5,0.7,5,2.4,6.8s4.1,2.9,6.6,2.9h81.3c2.5,0,4.9-1,6.6-2.9c1.7-1.8,2.6-4.3,2.4-6.8l-5.4-75.2c-0.4-5.1-4.6-9-9.7-9H87.7z M47.1,22.7C47.7,13.9,55.1,7,64,7s16.3,6.9,16.9,15.7l0.7,10.4H46.3L47.1,22.7z M102.3,42.6l5.4,75.2c0.1,0.8-0.2,1.6-0.8,2.3 c-0.6,0.6-1.4,1-2.2,1H23.4c-0.8,0-1.6-0.3-2.2-1s-0.9-1.4-0.8-2.3h0l5.4-75.9c0.1-1.6,1.4-2.8,3-2.8h11.1l-0.6,8 c-0.1,1.7,1.1,3.1,2.8,3.2c0.1,0,0.1,0,0.2,0c1.6,0,2.9-1.2,3-2.8l0.6-8.4h36.2l0.6,8.4c0.1,1.7,1.5,2.9,3.2,2.8 c1.7-0.1,2.9-1.5,2.8-3.2l-0.6-8h10.5C100.5,39.1,102.1,40.6,102.3,42.6z" />
+                </svg>
+                <div class="tst-cart-number" id="cart-count">0</div>
+              </a>
+              <div class="tst-minicart-window">
+                <div class="tst-minicart-header">
+                  <h5>Sifarişiniz</h5>
+                </div>
+                <ul class="woocommerce-mini-cart cart_list product_list_widget" id="minicart-items"></ul>
+                <p class="woocommerce-mini-cart__total total">
+                  <strong>Cəmi:</strong> <span id="minicart-total">₼0.00</span>
+                </p>
+                <p class="woocommerce-mini-cart__buttons buttons">
+                  <a href="#." class="button checkout wc-forward" id="btn-checkout">Sifariş ver</a>
+                </p>
+              </div>
+            </div>
+            <div class="tst-menu-button-frame">
+              <div class="tst-menu-btn">
+                <div class="tst-burger"><span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- top bar end -->
+
+    <div id="tst-dynamic-banner" class="tst-dynamic-banner">
+      <div class="tst-banner tst-small-banner">
+        <div class="tst-cover-frame">
+          <img src="img/banners/banner-sm-1.jpg" alt="cover" class="tst-cover tst-parallax">
+          <div class="tst-overlay"></div>
+        </div>
+        <div class="tst-banner-content-frame">
+          <div class="container">
+            <div class="tst-main-title-frame">
+              <div class="tst-main-title text-center">
+                <div class="tst-suptitle tst-suptitle-center tst-suptitle-mobile-center tst-text-shadow tst-white-2 tst-mb-15">Menyu</div>
+                <h1 class="tst-white-2 tst-text-shadow tst-mb-30">Menyumuzu kəşf edin</h1>
+                <div class="tst-text tst-text-shadow tst-text-lg tst-white-2 tst-mb-30" id="table-info"></div>
+                <ul class="tst-breadcrumbs">
+                  <li><a href="index.html">Ana Səhifə</a></li>
+                  <li class="tst-active"><a href="menu.html">Menyu</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tst-dynamic-content" class="tst-dynamic-content">
+
+      <div class="tst-content-frame">
+        <div class="tst-content-box">
+
+          <div class="container">
+            <a href="#tst-dynamic-content" class="tst-scroll-hint-frame tst-anchor-scroll">
+              <div class="tst-scroll-hint"></div>
+            </a>
+          </div>
+
+          <div class="container tst-p-60-60">
+
+            <!-- Kateqoriya filterləri -->
+            <div class="tst-category-filter" id="category-filters">
+              <button class="tst-filter-btn active" data-category="all">Hamısı</button>
+            </div>
+
+            <!-- Loading -->
+            <div class="tst-loading" id="menu-loading">
+              <div class="tst-loading-spinner"></div>
+              <div class="tst-text">Menyu yüklənir...</div>
+            </div>
+
+            <!-- Menyu itemləri -->
+            <div class="row" id="menu-items-container">
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- footer -->
+    <footer class="tst-white tst-fade-down">
+      <div class="container">
+        <div class="tst-footer-top">
+          <img src="img/logo-sm-white.svg" class="tst-logo" alt="Restoran">
+          <div class="tst-social">
+            <a href="#." class="tst-icon-link"><i class="fab fa-facebook-f"></i></a>
+            <a href="#." class="tst-icon-link"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+        <div class="tst-spacer tst-white"></div>
+        <div class="row">
+          <div class="col-lg-4">
+            <div class="tst-mb-60">
+              <h5 class="tst-mb-30 tst-text-shadow">Haqqımızda</h5>
+              <div class="tst-text tst-text-shadow tst-mb-30">Biz ən keyfiyyətli inqrediyentlərdən istifadə edərək, sizin üçün unudulmaz dad təcrübəsi yaradırıq.</div>
+              <a href="about.html" class="tst-label tst-color">Ətraflı</a>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="tst-mb-60">
+              <h5 class="tst-mb-30 tst-text-shadow">Əlaqə</h5>
+              <ul class="tst-footer-contact tst-text-shadow tst-mb-30">
+                <li><span class="tst-label">Zəng :</span><span class="tst-text">+994 (50) 555 55 55</span></li>
+                <li><span class="tst-label">Email :</span><span class="tst-text">info@restoran.az</span></li>
+                <li><span class="tst-label">Ünvan :</span><span class="tst-text">Bakı, Nizami küç. 123</span></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="tst-mb-60">
+              <h5 class="tst-mb-30 tst-text-shadow">İş saatları</h5>
+              <ul class="tst-footer-contact tst-text-shadow tst-mb-30">
+                <li><span class="tst-label">B.e - Cümə :</span><span class="tst-text">10:00 - 23:00</span></li>
+                <li><span class="tst-label">Şənbə - Bazar :</span><span class="tst-text">11:00 - 00:00</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="tst-spacer tst-white tst-spacer-only-bottom-space"></div>
+        <div class="tst-footer-bottom">
+          <div class="tst-text">&copy; Restoran 2026. Bütün hüquqlar qorunur.</div>
+          <a href="#tst-app" class="tst-label tst-color tst-anchor-scroll">Yuxarı qalx</a>
+        </div>
+      </div>
+    </footer>
+    <!-- footer end -->
+
+    <!-- Reservation popup -->
+    <div class="tst-popup-bg">
+      <div class="tst-popup-frame">
+        <div class="tst-popup-body">
+          <div class="tst-close-popup"><i class="fas fa-times"></i></div>
+          <div class="text-center">
+            <h4 class="tst-mb-60">Masa Rezervasiyası</h4>
+          </div>
+          <div id="reservation-message" style="display:none;" class="text-center tst-mb-30">
+            <div class="tst-text" id="reservation-message-text"></div>
+          </div>
+          <form id="reservation-form">
+            <div class="row">
+              <div class="col-6 col-md-4">
+                <input type="text" id="res-name" placeholder="Ad Soyad" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <input type="text" id="res-phone" placeholder="Telefon" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <input type="email" id="res-email" placeholder="Email (ixtiyari)">
+              </div>
+              <div class="col-6 col-md-4">
+                <select id="res-guests" class="wide">
+                  <option data-display="Qonaq sayı">Seçin</option>
+                  <option value="1">1 nəfər</option>
+                  <option value="2">2 nəfər</option>
+                  <option value="3">3 nəfər</option>
+                  <option value="4">4 nəfər</option>
+                  <option value="5">5 nəfər</option>
+                  <option value="6">6+ nəfər</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="datepicker__container">
+                  <input id="res-date" data-language='az' type='text' class="datepicker-here" data-position="bottom left" placeholder="Tarix" required>
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <select id="res-time" class="wide">
+                  <option data-display="Saat">Seçin</option>
+                  <option value="10:00">10:00</option>
+                  <option value="11:00">11:00</option>
+                  <option value="12:00">12:00</option>
+                  <option value="13:00">13:00</option>
+                  <option value="14:00">14:00</option>
+                  <option value="15:00">15:00</option>
+                  <option value="16:00">16:00</option>
+                  <option value="17:00">17:00</option>
+                  <option value="18:00">18:00</option>
+                  <option value="19:00">19:00</option>
+                  <option value="20:00">20:00</option>
+                  <option value="21:00">21:00</option>
+                  <option value="22:00">22:00</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <textarea id="res-note" rows="4" placeholder="Qeyd (ixtiyari)"></textarea>
+              </div>
+            </div>
+            <button class="tst-btn" type="submit">Rezervasiya et</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sifariş bar (QR ilə girəndə) -->
+  <div class="tst-order-status-bar" id="order-bar">
+    <div>
+      <span id="order-bar-count">0</span> məhsul seçilib
+    </div>
+    <div class="tst-order-total">
+      Cəmi: <span id="order-bar-total">₼0.00</span>
+    </div>
+    <button class="tst-btn" id="btn-order-bar">Sifariş ver</button>
+  </div>
+
+  <script src="js/plugins/jquery.min.js"></script>
+    <script src="js/plugins/swup.min.js"></script> 
+  <script src="js/plugins/swiper.min.js"></script>
+  <script src="js/plugins/smooth-scroll.js"></script>
+  <script src="js/plugins/fancybox.min.js"></script>
+  <script src="js/plugins/datepicker.js"></script>
+  <script src="js/plugins/jquery.nice-select.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+      const API_BASE = '/api';
+      const urlParams = new URLSearchParams(window.location.search);
+      const tableId = urlParams.get('tableId');
+      const isInRestaurant = !!tableId;
+
+      let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+
+      $(document).ready(function () {
+          if (isInRestaurant) {
+              $('#minicart-container').show();
+              $('#nav-res-btn').hide();
+              $('#order-bar').css('display', 'flex');
+              fetchTableInfo();
+              $('nav ul').html(
+                  '<li><a href="index.html?tableId=' + tableId + '">Ana Səhifə</a></li>' +
+                  '<li class="current-menu-item"><a href="menu.html?tableId=' + tableId + '">Menyu</a></li>' +
+                  '<li><a href="about.html?tableId=' + tableId + '">Haqqımızda</a></li>' +
+                  '<li><a href="contact.html?tableId=' + tableId + '">Əlaqə</a></li>'
+              );
+          } else {
+              $('.tst-res-btn').show();
+          }
+
+          loadMenu();
+          updateCartUI();
+
+          $(document).on('click', '.tst-filter-btn', function () {
+              $('.tst-filter-btn').removeClass('active');
+              $(this).addClass('active');
+              var cat = $(this).data('category');
+              if (cat === 'all') {
+                  $('.tst-menu-card-wrapper').removeClass('hidden');
+              } else {
+                  $('.tst-menu-card-wrapper').addClass('hidden');
+                  $('.tst-menu-card-wrapper[data-category="' + cat + '"]').removeClass('hidden');
+              }
+          });
+
+          $(document).on('click', '.tst-add-to-cart', function () {
+              var productId = $(this).data('id');
+              var name = $(this).data('name');
+              var price = parseFloat($(this).data('price'));
+              var image = $(this).data('image');
+              addToCart(productId, name, price, image);
+              $(this).addClass('tst-added');
+              var btn = $(this);
+              setTimeout(function () { btn.removeClass('tst-added'); }, 500);
+          });
+
+          $(document).on('click', '.remove-cart-item', function () {
+              var productId = $(this).data('id');
+              removeFromCart(productId);
+          });
+
+          $('#btn-checkout, #btn-order-bar').on('click', function () {
+              submitOrder();
+          });
+
+          $('.tst-res-btn').on('click', function () {
+              $('.tst-popup-bg').toggleClass('tst-active');
+          });
+          $('.tst-close-popup').on('click', function () {
+              $('.tst-popup-bg').removeClass('tst-active');
+          });
+      });
+
+      async function fetchTableInfo() {
+          try {
+              var res = await fetch(API_BASE + '/Tables/' + tableId);
+              var data = await res.json();
+              if (data.success) {
+                  $('#table-info').text(data.data.name + ' - Xoş gəlmisiniz!');
+              }
+          } catch (e) { }
+      }
+
+      async function loadMenu() {
+          try {
+              var res = await fetch(API_BASE + '/Categories/with-products');
+              var data = await res.json();
+
+              if (!data.success || !data.data) {
+                  $('#menu-loading').html('<div class="tst-text">Menyu tapılmadı.</div>');
+                  return;
+              }
+
+              var categories = data.data;
+              var filtersContainer = $('#category-filters');
+              var menuContainer = $('#menu-items-container');
+
+              categories.forEach(function (cat) {
+                  filtersContainer.append(
+                      '<button class="tst-filter-btn" data-category="' + cat.id + '">' + cat.name + '</button>'
+                  );
+              });
+
+              categories.forEach(function (cat) {
+                  if (!cat.products || cat.products.length === 0) return;
+
+                  menuContainer.append(
+                      '<div class="col-lg-12 tst-menu-card-wrapper" data-category="' + cat.id + '">' +
+                      '  <div class="tst-menu-ilust tst-menu-ilust-2 tst-mb-30">' +
+                      (cat.imageUrl ? '    <img src="' + cat.imageUrl + '" alt="' + cat.name + '">' : '') +
+                      '    <div class="tst-overlay"></div>' +
+                      '    <div class="tsc-ilust-text tst-white">' +
+                      '      <div class="tst-suptitle tst-mb-15">Menyu</div>' +
+                      '      <h3>' + cat.name + '</h3>' +
+                      '    </div>' +
+                      '  </div>' +
+                      '</div>'
+                  );
+
+                  cat.products.forEach(function (product) {
+                      var imageUrl = product.imageUrl || 'img/menu/1.jpg';
+                      var cartButton = '';
+
+                      if (isInRestaurant) {
+                          cartButton =
+                              '<div class="tst-menu-book-bottom" style="margin-top:10px;">' +
+                              '  <div class="tst-menu-book-price">' +
+                              '    <div class="tst-price"><span class="tst-symbol">&#8380;</span>' + product.price.toFixed(2) + '</div>' +
+                              '  </div>' +
+                              '  <a href="#." class="tst-btn tst-cart-btn tst-add-to-cart"' +
+                              '     data-id="' + product.id + '" data-name="' + product.name + '"' +
+                              '     data-price="' + product.price + '" data-image="' + imageUrl + '"' +
+                              '     title="Səbətə əlavə et">' +
+                              '    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">' +
+                              '      <path d="M87.7,33.1l-0.8-10.8C86,10.4,76,1,64,1s-22.1,9.4-22.9,21.3l-0.8,10.8H28.8c-4.7,0-8.6,3.7-9,8.4l-5.4,75.9c0,0,0,0,0,0 c-0.2,2.5,0.7,5,2.4,6.8s4.1,2.9,6.6,2.9h81.3c2.5,0,4.9-1,6.6-2.9c1.7-1.8,2.6-4.3,2.4-6.8l-5.4-75.2c-0.4-5.1-4.6-9-9.7-9H87.7z M47.1,22.7C47.7,13.9,55.1,7,64,7s16.3,6.9,16.9,15.7l0.7,10.4H46.3L47.1,22.7z M102.3,42.6l5.4,75.2c0.1,0.8-0.2,1.6-0.8,2.3 c-0.6,0.6-1.4,1-2.2,1H23.4c-0.8,0-1.6-0.3-2.2-1s-0.9-1.4-0.8-2.3h0l5.4-75.9c0.1-1.6,1.4-2.8,3-2.8h11.1l-0.6,8 c-0.1,1.7,1.1,3.1,2.8,3.2c0.1,0,0.1,0,0.2,0c1.6,0,2.9-1.2,3-2.8l0.6-8.4h36.2l0.6,8.4c0.1,1.7,1.5,2.9,3.2,2.8 c1.7-0.1,2.9-1.5,2.8-3.2l-0.6-8h10.5C100.5,39.1,102.1,40.6,102.3,42.6z" />' +
+                              '    </svg>' +
+                              '  </a>' +
+                              '</div>';
+                      } else {
+                          cartButton =
+                              '<div style="margin-top:10px;">' +
+                              '  <div class="tst-price"><span>&#8380;</span>' + product.price.toFixed(2) + '</div>' +
+                              '</div>';
+                      }
+
+                      menuContainer.append(
+                          '<div class="col-lg-6 tst-menu-card-wrapper" data-category="' + cat.id + '">' +
+                          '  <div class="tst-new-menu-card">' +
+                          '    <a href="' + imageUrl + '" data-fancybox="menu" class="tst-cover">' +
+                          '      <img src="' + imageUrl + '" alt="' + product.name + '">' +
+                          '      <div class="tst-zoom-icon"><i class="fas fa-search-plus"></i></div>' +
+                          '    </a>' +
+                          '    <div class="tst-menu-item-descr">' +
+                          '      <div class="tst-name-price">' +
+                          '        <h5 class="tst-mb-15">' + product.name + '</h5>' +
+                          '      </div>' +
+                          (product.description ? '      <div class="tst-text">' + product.description + '</div>' : '') +
+                          cartButton +
+                          '    </div>' +
+                          '  </div>' +
+                          '</div>'
+                      );
+                  });
+              });
+
+              $('#menu-loading').hide();
+
+              $('[data-fancybox="menu"]').fancybox({
+                  animationEffect: "zoom-in-out",
+                  animationDuration: 600,
+                  transitionDuration: 1000
+              });
+
+          } catch (err) {
+              console.error('Menu load error:', err);
+              $('#menu-loading').html('<div class="tst-text">Menyu yüklənərkən xəta baş verdi.</div>');
+          }
+      }
+
+      function addToCart(productId, name, price, image) {
+          var existing = cart.find(function (item) { return item.productId === productId; });
+          if (existing) {
+              existing.quantity++;
+          } else {
+              cart.push({ productId: productId, name: name, price: price, image: image, quantity: 1 });
+          }
+          saveCart();
+          updateCartUI();
+      }
+
+      function removeFromCart(productId) {
+          cart = cart.filter(function (item) { return item.productId !== productId; });
+          saveCart();
+          updateCartUI();
+      }
+
+      function saveCart() {
+          sessionStorage.setItem('cart', JSON.stringify(cart));
+      }
+
+      function updateCartUI() {
+          var totalItems = cart.reduce(function (sum, item) { return sum + item.quantity; }, 0);
+          var totalPrice = cart.reduce(function (sum, item) { return sum + (item.price * item.quantity); }, 0);
+
+          $('#cart-count').text(totalItems);
+          $('#order-bar-count').text(totalItems);
+
+          var totalText = '&#8380;' + totalPrice.toFixed(2);
+          $('#minicart-total').html(totalText);
+          $('#order-bar-total').html(totalText);
+
+          var minicartItems = $('#minicart-items');
+          minicartItems.empty();
+
+          cart.forEach(function (item) {
+              minicartItems.append(
+                  '<li class="woocommerce-mini-cart-item mini_cart_item">' +
+                  '  <a href="#." class="remove remove_from_cart_button remove-cart-item" data-id="' + item.productId + '">&times;</a>' +
+                  '  <a href="#.">' +
+                  '    <img src="' + item.image + '" class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail" alt="' + item.name + '">' +
+                  '    ' + item.name +
+                  '  </a>' +
+                  '  <span class="quantity">' + item.quantity + ' &times; <span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol">&#8380;</span>' + item.price.toFixed(2) + '</bdi></span></span>' +
+                  '</li>'
+              );
+          });
+
+          if (isInRestaurant && totalItems > 0) {
+              $('#order-bar').css('display', 'flex');
+          }
+      }
+
+      async function submitOrder() {
+          if (cart.length === 0) {
+              alert('Səbətiniz boşdur!');
+              return;
+          }
+          if (!tableId) {
+              alert('Masa tapılmadı. QR kodu yenidən skan edin.');
+              return;
+          }
+          try {
+              for (var i = 0; i < cart.length; i++) {
+                  await fetch(API_BASE + '/Basket', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                          tableId: tableId,
+                          productId: cart[i].productId,
+                          quantity: cart[i].quantity
+                      })
+                  });
+              }
+
+              var orderRes = await fetch(API_BASE + '/Orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tableId: tableId })
+              });
+
+              var orderData = await orderRes.json();
+
+              if (orderData.success) {
+                  cart = [];
+                  saveCart();
+                  updateCartUI();
+                  $('.tst-minicart-window').removeClass('tst-active');
+                  alert('Sifarişiniz qəbul edildi! Sifariş nömrəsi: ' + orderData.data.orderNumber);
+                  window.location.href = 'order-status.html?orderId=' + orderData.data.id + '&tableId=' + tableId;
+              } else {
+                  alert(orderData.message || 'Sifariş zamanı xəta baş verdi.');
+              }
+          } catch (err) {
+              console.error('Order error:', err);
+              alert('Server xətası. Yenidən cəhd edin.');
+          }
+      }
+
+      $('#reservation-form').on('submit', async function (e) {
+          e.preventDefault();
+          var name = $('#res-name').val().trim();
+          var phone = $('#res-phone').val().trim();
+          var email = $('#res-email').val().trim();
+          var guests = $('#res-guests').val();
+          var dateStr = $('#res-date').val();
+          var time = $('#res-time').val();
+          var note = $('#res-note').val().trim();
+
+          if (!name || !phone || !guests || !dateStr || !time) {
+              showResMessage('Bütün vacib sahələri doldurun.', false);
+              return;
+          }
+
+          var dateParts = dateStr.split('.');
+          var reservationDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+          var timeParts = time.split(':');
+          reservationDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0);
+
+          try {
+              var tablesRes = await fetch(API_BASE + '/Tables');
+              var tablesData = await tablesRes.json();
+              var guestCount = parseInt(guests);
+              var suitableTable = null;
+              if (tablesData.data) {
+                  for (var i = 0; i < tablesData.data.length; i++) {
+                      if (tablesData.data[i].capacity >= guestCount && tablesData.data[i].status === 0) {
+                          suitableTable = tablesData.data[i];
+                          break;
+                      }
+                  }
+              }
+
+              if (!suitableTable) {
+                  showResMessage('Uyğun masa tapılmadı.', false);
+                  return;
+              }
+
+              var response = await fetch(API_BASE + '/Reservations', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      customerName: name,
+                      customerPhone: phone,
+                      customerEmail: email || null,
+                      reservationDate: reservationDate.toISOString(),
+                      guestCount: guestCount,
+                      note: note || null,
+                      tableId: suitableTable.id
+                  })
+              });
+              var data = await response.json();
+              if (data.success) {
+                  showResMessage('Rezervasiya uğurla yaradıldı!', true);
+                  $('#reservation-form')[0].reset();
+                  $('select').niceSelect('update');
+              } else {
+                  showResMessage(data.message || 'Xəta baş verdi.', false);
+              }
+          } catch (err) {
+              showResMessage('Server xətası.', false);
+          }
+      });
+
+      function showResMessage(text, isSuccess) {
+          var msgEl = $('#reservation-message');
+          var textEl = $('#reservation-message-text');
+          textEl.text(text);
+          textEl.css('color', isSuccess ? '#4CAF50' : '#f44336');
+          msgEl.fadeIn();
+          if (isSuccess) {
+              setTimeout(function () {
+                  msgEl.fadeOut();
+                  $('.tst-popup-bg').removeClass('tst-active');
+              }, 3000);
+          }
+      }
+  </script>
+
+</body>
+
+</html>

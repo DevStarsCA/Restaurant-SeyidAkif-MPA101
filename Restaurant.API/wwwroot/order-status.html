@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/plugins/bootstrap.min.css">
+  <link rel="stylesheet" href="css/plugins/font-awesome.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Restoran - Sifariş İzləmə</title>
+  <style>
+    .order-status-container { max-width: 600px; margin: 0 auto; padding: 30px 15px; }
+    .order-card { background: #fff; border-radius: 15px; padding: 30px; box-shadow: 0 5px 30px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .order-number { font-size: 14px; color: #999; letter-spacing: 2px; text-transform: uppercase; }
+    .order-status-badge {
+      display: inline-block; padding: 8px 20px; border-radius: 30px;
+      font-size: 14px; font-weight: 600; letter-spacing: 1px;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-preparing { background: #cce5ff; color: #004085; }
+    .status-ready { background: #d4edda; color: #155724; }
+    .status-served { background: #d1ecf1; color: #0c5460; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+
+    .order-timeline { position: relative; padding: 20px 0; }
+    .timeline-item {
+      display: flex; align-items: center; gap: 15px;
+      padding: 15px 0; position: relative;
+    }
+    .timeline-dot {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #e0e0e0; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; color: #fff;
+      flex-shrink: 0; transition: all 0.5s;
+    }
+    .timeline-dot.active { background: #c8a97e; }
+    .timeline-dot.completed { background: #4CAF50; }
+    .timeline-text { font-size: 15px; }
+    .timeline-text.active { font-weight: 600; color: #c8a97e; }
+
+    .order-items { list-style: none; padding: 0; margin: 20px 0 0; }
+    .order-items li {
+      display: flex; justify-content: space-between; padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .order-items li:last-child { border: none; }
+    .item-name { font-weight: 500; }
+    .item-qty { color: #999; }
+    .item-price { font-weight: 600; color: #c8a97e; }
+
+    .order-total-row {
+      display: flex; justify-content: space-between;
+      padding: 15px 0; border-top: 2px solid #f0f0f0;
+      font-size: 18px; font-weight: 700;
+    }
+
+    .btn-pay {
+      display: block; width: 100%; padding: 15px; border: none;
+      background: #c8a97e; color: #fff; font-size: 16px; font-weight: 600;
+      border-radius: 30px; cursor: pointer; transition: all 0.3s;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .btn-pay:hover { background: #b8956e; }
+    .btn-back {
+      display: block; text-align: center; margin-top: 15px;
+      color: #c8a97e; font-size: 14px; letter-spacing: 1px;
+    }
+    .pulse-animation { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body style="background: #f8f8f8;">
+
+  <div class="order-status-container">
+
+    <div style="text-align:center; margin-bottom:30px;">
+      <img src="img/logo-sm.svg" alt="Restoran" style="height:40px; margin-bottom:15px;">
+      <h3>Sifariş İzləmə</h3>
+    </div>
+
+    <div class="order-card">
+      <div class="order-number" id="order-number">Yüklənir...</div>
+      <h4 style="margin:10px 0;" id="order-status-text">Status yoxlanılır...</h4>
+      <span class="order-status-badge status-pending pulse-animation" id="order-badge">Gözləyir</span>
+
+      <div class="order-timeline" id="order-timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot active" id="dot-pending"><i class="fas fa-check" style="font-size:10px;"></i></div>
+          <div class="timeline-text active" id="text-pending">Sifariş qəbul edildi</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" id="dot-preparing"><i class="fas fa-fire" style="font-size:10px;"></i></div>
+          <div class="timeline-text" id="text-preparing">Hazırlanır</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" id="dot-ready"><i class="fas fa-bell" style="font-size:10px;"></i></div>
+          <div class="timeline-text" id="text-ready">Hazırdır</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" id="dot-served"><i class="fas fa-utensils" style="font-size:10px;"></i></div>
+          <div class="timeline-text" id="text-served">Masaya gətirildi</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-card">
+      <h5 style="margin-bottom:15px;">Sifariş detalları</h5>
+      <ul class="order-items" id="order-items-list">
+        <li><span>Yüklənir...</span></li>
+      </ul>
+      <div class="order-total-row">
+        <span>Cəmi</span>
+        <span id="order-total">₼0.00</span>
+      </div>
+    </div>
+
+    <button class="btn-pay" id="btn-pay" style="display:none;">
+      <i class="fas fa-credit-card"></i> Onlayn ödə
+    </button>
+
+    <a href="#" class="btn-back" id="btn-back-menu">
+      <i class="fas fa-arrow-left"></i> Menyuya qayıt
+    </a>
+
+  </div>
+
+  <script src="js/plugins/jquery.min.js"></script>
+  <script>
+    const API_BASE = '/api';
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+    const tableId = urlParams.get('tableId') || localStorage.getItem('tableId');
+
+    $('#btn-back-menu').attr('href', `menu.html${tableId ? '?tableId=' + tableId : ''}`);
+
+    const statusMap = {
+      0: { text: 'Gözləyir', class: 'status-pending', step: 0 },
+      1: { text: 'Hazırlanır', class: 'status-preparing', step: 1 },
+      2: { text: 'Hazırdır', class: 'status-ready', step: 2 },
+      3: { text: 'Masaya gətirildi', class: 'status-served', step: 3 },
+      4: { text: 'Tamamlandı', class: 'status-completed', step: 4 },
+      5: { text: 'Ləğv edildi', class: 'status-cancelled', step: -1 }
+    };
+
+    const steps = ['pending', 'preparing', 'ready', 'served'];
+
+    async function loadOrder() {
+      if (!orderId) {
+        $('#order-number').text('Sifariş tapılmadı');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/Orders/${orderId}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          $('#order-number').text('Sifariş tapılmadı');
+          return;
+        }
+
+        const order = data.data;
+        $('#order-number').text(`Sifariş #${order.orderNumber}`);
+
+        // Status
+        const status = statusMap[order.status] || statusMap[0];
+        $('#order-status-text').text(status.text);
+        $('#order-badge').attr('class', `order-status-badge ${status.class}`).text(status.text);
+
+        // Timeline
+        steps.forEach((step, index) => {
+          const dot = $(`#dot-${step}`);
+          const text = $(`#text-${step}`);
+          if (index < status.step) {
+            dot.addClass('completed').removeClass('active');
+            text.removeClass('active');
+          } else if (index === status.step) {
+            dot.addClass('active').removeClass('completed');
+            text.addClass('active');
+          } else {
+            dot.removeClass('active completed');
+            text.removeClass('active');
+          }
+        });
+
+        // Məhsullar
+        const itemsList = $('#order-items-list');
+        itemsList.empty();
+        if (order.items && order.items.length > 0) {
+          order.items.forEach(item => {
+            itemsList.append(`
+              <li>
+                <div>
+                  <span class="item-name">${item.productName}</span>
+                  <span class="item-qty"> x${item.quantity}</span>
+                </div>
+                <span class="item-price">₼${(item.unitPrice * item.quantity).toFixed(2)}</span>
+              </li>
+            `);
+          });
+        }
+
+        // Total
+        $('#order-total').text(`₼${order.totalAmount.toFixed(2)}`);
+
+        // Ödəniş düyməsi (yalnız served status-da)
+        if (order.status === 3) {
+          $('#btn-pay').show();
+        }
+
+      } catch (err) {
+        console.error('Order load error:', err);
+        $('#order-number').text('Xəta baş verdi');
+      }
+    }
+
+    // Onlayn ödəniş
+    $('#btn-pay').on('click', async function() {
+      try {
+        const res = await fetch(`${API_BASE}/Payments/online/${orderId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success && data.data.hppUrl) {
+          window.location.href = data.data.hppUrl;
+        } else {
+          alert(data.message || 'Ödəniş xətası');
+        }
+      } catch (err) {
+        alert('Server xətası');
+      }
+    });
+
+    // İlk yüklə
+    loadOrder();
+
+    // Hər 10 saniyədə yenilə
+    setInterval(loadOrder, 10000);
+  </script>
+
+</body>
+</html>
