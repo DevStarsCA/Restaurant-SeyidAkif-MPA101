@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-utensils"></i>
+            <span>Restoran Panel</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active"><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0">Dashboard</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="content-area">
+            <div class="row g-4 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="stat-orders">0</div>
+                            <div class="stat-label">Bugünkü sifarişlər</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card stat-success">
+                        <div class="stat-icon"><i class="fas fa-manat-sign"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="stat-revenue">₼0</div>
+                            <div class="stat-label">Bugünkü gəlir</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon"><i class="fas fa-chair"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="stat-tables">0</div>
+                            <div class="stat-label">Aktiv masalar</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card stat-info">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="stat-reservations">0</div>
+                            <div class="stat-label">Bugünkü rezervasiyalar</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <div class="card-custom-header">
+                            <h6><i class="fas fa-receipt"></i> Son sifarişlər</h6>
+                            <a href="orders.html" class="btn btn-sm btn-outline-primary">Hamısını gör</a>
+                        </div>
+                        <div class="card-custom-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Sifariş №</th>
+                                            <th>Masa</th>
+                                            <th>Məbləğ</th>
+                                            <th>Status</th>
+                                            <th>Vaxt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-orders">
+                                        <tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <div class="card-custom-header">
+                            <h6><i class="fas fa-calendar-check"></i> Bugünkü rezervasiyalar</h6>
+                        </div>
+                        <div class="card-custom-body">
+                            <div id="today-reservations">
+                                <p class="text-center text-muted">Yüklənir...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-custom mt-4">
+                        <div class="card-custom-header">
+                            <h6><i class="fas fa-chair"></i> Masa statusları</h6>
+                        </div>
+                        <div class="card-custom-body">
+                            <div id="table-statuses">
+                                <p class="text-center text-muted">Yüklənir...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+
+        $(document).ready(function() {
+            loadDashboard();
+        });
+
+        async function loadDashboard() {
+            try {
+                // Sifarişlər
+                var ordersRes = await authFetch('/Orders');
+                if (ordersRes && ordersRes.success && ordersRes.data) {
+                    var today = new Date().toDateString();
+                    var todayOrders = ordersRes.data.filter(function(o) {
+                        return new Date(o.createdDate).toDateString() === today;
+                    });
+                    document.getElementById('stat-orders').textContent = todayOrders.length;
+
+                    var revenue = todayOrders.reduce(function(sum, o) { return sum + (o.totalAmount || 0); }, 0);
+                    document.getElementById('stat-revenue').textContent = '₼' + revenue.toFixed(2);
+
+                    // Son sifarişlər
+                    var recentBody = document.getElementById('recent-orders');
+                    var recent = ordersRes.data.slice(0, 10);
+                    if (recent.length === 0) {
+                        recentBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sifariş yoxdur</td></tr>';
+                    } else {
+                        var html = '';
+                        recent.forEach(function(order) {
+                            var statusBadge = getStatusBadge(order.status);
+                            var time = new Date(order.createdDate).toLocaleTimeString('az', {hour:'2-digit',minute:'2-digit'});
+                            html += '<tr>' +
+                                '<td><strong>#' + (order.orderNumber || order.id.substring(0,8)) + '</strong></td>' +
+                                '<td>' + (order.tableName || 'Masa') + '</td>' +
+                                '<td>₼' + (order.totalAmount || 0).toFixed(2) + '</td>' +
+                                '<td>' + statusBadge + '</td>' +
+                                '<td>' + time + '</td>' +
+                                '</tr>';
+                        });
+                        recentBody.innerHTML = html;
+                    }
+                }
+
+                // Masalar
+                var tablesRes = await authFetch('/Tables');
+                if (tablesRes && tablesRes.success && tablesRes.data) {
+                    var activeTables = tablesRes.data.filter(function(t) { return t.status === 1; });
+                    document.getElementById('stat-tables').textContent = activeTables.length + '/' + tablesRes.data.length;
+
+                    var tableHtml = '';
+                    tablesRes.data.forEach(function(table) {
+                        var statusClass = table.status === 0 ? 'bg-success' : 'bg-danger';
+                        var statusText = table.status === 0 ? 'Boş' : 'Dolu';
+                        tableHtml += '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                            '<span>' + table.name + '</span>' +
+                            '<span class="badge ' + statusClass + '">' + statusText + '</span>' +
+                            '</div>';
+                    });
+                    document.getElementById('table-statuses').innerHTML = tableHtml || '<p class="text-muted">Masa yoxdur</p>';
+                }
+
+                // Rezervasiyalar
+                var resRes = await authFetch('/Reservations');
+                if (resRes && resRes.success && resRes.data) {
+                    var today = new Date().toDateString();
+                    var todayRes = resRes.data.filter(function(r) {
+                        return new Date(r.reservationDate).toDateString() === today;
+                    });
+                    document.getElementById('stat-reservations').textContent = todayRes.length;
+
+                    var resHtml = '';
+                    todayRes.forEach(function(res) {
+                        var time = new Date(res.reservationDate).toLocaleTimeString('az', {hour:'2-digit',minute:'2-digit'});
+                        resHtml += '<div class="reservation-item mb-3">' +
+                            '<div class="d-flex justify-content-between">' +
+                            '<strong>' + res.customerName + '</strong>' +
+                            '<span class="badge bg-primary">' + time + '</span>' +
+                            '</div>' +
+                            '<small class="text-muted">' + res.guestCount + ' nəfər | ' + res.customerPhone + '</small>' +
+                            '</div>';
+                    });
+                    document.getElementById('today-reservations').innerHTML = resHtml || '<p class="text-muted text-center">Rezervasiya yoxdur</p>';
+                }
+
+            } catch (err) {
+                console.error('Dashboard error:', err);
+            }
+        }
+
+        function getStatusBadge(status) {
+            var map = {
+                0: '<span class="badge bg-warning">Gözləyir</span>',
+                1: '<span class="badge bg-info">Hazırlanır</span>',
+                2: '<span class="badge bg-primary">Hazırdır</span>',
+                3: '<span class="badge bg-success">Verildi</span>',
+                4: '<span class="badge bg-secondary">Tamamlandı</span>',
+                5: '<span class="badge bg-danger">Ləğv</span>'
+            };
+            return map[status] || '<span class="badge bg-secondary">Naməlum</span>';
+        }
+    </script>
+
+</body>
+</html>

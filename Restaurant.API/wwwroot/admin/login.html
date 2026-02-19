@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Giriş</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 50px 40px; width: 100%; max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .login-logo { text-align: center; margin-bottom: 30px; }
+        .login-logo i { font-size: 50px; color: #c8a97e; margin-bottom: 15px; }
+        .login-logo h2 { color: #fff; font-weight: 300; letter-spacing: 2px; }
+        .login-logo p { color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 5px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+            color: rgba(255,255,255,0.4); font-size: 16px;
+        }
+        .form-group input {
+            width: 100%; padding: 14px 15px 14px 45px; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px; background: rgba(255,255,255,0.05); color: #fff;
+            font-size: 15px; transition: all 0.3s; outline: none;
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-group input:focus { border-color: #c8a97e; background: rgba(255,255,255,0.08); }
+        .btn-login {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #c8a97e, #b8956e); color: #fff;
+            font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(200,169,126,0.3); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .error-msg {
+            background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3);
+            color: #f44336; padding: 12px 15px; border-radius: 10px;
+            font-size: 14px; margin-bottom: 20px; display: none; text-align: center;
+        }
+        .back-link {
+            display: block; text-align: center; margin-top: 20px;
+            color: rgba(255,255,255,0.4); font-size: 13px; text-decoration: none;
+        }
+        .back-link:hover { color: #c8a97e; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-logo">
+            <i class="fas fa-utensils"></i>
+            <h2>Restoran Panel</h2>
+            <p>İdarəetmə panelinə daxil olun</p>
+        </div>
+
+        <div class="error-msg" id="error-msg"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="email" placeholder="İstifadəçi adı" required>
+            </div>
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Şifrə" required>
+            </div>
+            <button type="submit" class="btn-login" id="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Daxil ol
+            </button>
+        </form>
+
+        <a href="../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Sayta qayıt</a>
+    </div>
+
+    <script>
+        var API_BASE = '/api';
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var btn = document.getElementById('btn-login');
+            var errorMsg = document.getElementById('error-msg');
+
+            errorMsg.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gözləyin...';
+
+            try {
+                var response = await fetch(API_BASE + '/Auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userName: email, password: password })
+                });
+
+                var data = await response.json();
+
+                if (data.success && data.data && data.data.token) {
+                    sessionStorage.setItem('token', data.data.token);
+                    sessionStorage.setItem('user', JSON.stringify(data.data));
+
+                    var role = data.data.role || 'Admin';
+
+                    if (role === 'Kitchen') {
+                        window.location.href = 'kitchen.html';
+                    } else if (role === 'Cashier') {
+                        window.location.href = 'cashier.html';
+                    } else if (role === 'Waiter') {
+                        window.location.href = 'waiter-panel.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } else {
+                    errorMsg.textContent = data.message || 'Email və ya şifrə yanlışdır.';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Server xətası. Yenidən cəhd edin.';
+                errorMsg.style.display = 'block';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Daxil ol';
+        });
+    </script>
+
+</body>
+</html>
