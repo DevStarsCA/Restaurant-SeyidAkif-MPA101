@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Ofisiantlar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li class="active"><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0">Ofisiantlar</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="card-custom">
+                <div class="card-custom-header">
+                    <h6><i class="fas fa-user-tie"></i> İstifadəçilər</h6>
+                    <button class="btn btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Yeni istifadəçi</button>
+                </div>
+                <div class="card-custom-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ad</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table">
+                                <tr><td colspan="4" class="text-center text-muted">Yüklənir...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yeni istifadəçi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ad Soyad *</label>
+                        <input type="text" class="form-control" id="fullName" placeholder="Məs: Əli Əliyev">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İstifadəçi adı *</label>
+                        <input type="text" class="form-control" id="userName" placeholder="Məs: ali">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="userEmail" placeholder="ali@test.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şifrə *</label>
+                        <input type="password" class="form-control" id="userPassword" placeholder="Minimum 6 simvol">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rol *</label>
+                        <select class="form-select" id="userRole">
+                            <option value="Waiter">Ofisiant</option>
+                            <option value="Kitchen">Mətbəx</option>
+                            <option value="Cashier">Kassir</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv et</button>
+                    <button type="button" class="btn btn-add" onclick="createUser()">Yarat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+        var modal = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            modal = new bootstrap.Modal(document.getElementById('userModal'));
+            loadUsers();
+        });
+
+        async function loadUsers() {
+            var data = await authFetch('/Auth/users');
+            var tbody = document.getElementById('users-table');
+
+            if (!data || !data.success || !data.data || data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">İstifadəçi yoxdur</td></tr>';
+                return;
+            }
+
+            var html = '';
+            data.data.forEach(function(user) {
+                var roleBadge = '';
+                switch(user.role) {
+                    case 'Admin': roleBadge = '<span class="badge bg-danger">Admin</span>'; break;
+                    case 'Waiter': roleBadge = '<span class="badge bg-primary">Ofisiant</span>'; break;
+                    case 'Kitchen': roleBadge = '<span class="badge bg-warning">Mətbəx</span>'; break;
+                    case 'Cashier': roleBadge = '<span class="badge bg-info">Kassir</span>'; break;
+                    default: roleBadge = '<span class="badge bg-secondary">' + user.role + '</span>';
+                }
+
+                html += '<tr>' +
+                    '<td><strong>' + (user.fullName || user.userName) + '</strong></td>' +
+                    '<td>' + user.userName + '</td>' +
+                    '<td>' + (user.email || '-') + '</td>' +
+                    '<td>' + roleBadge + '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        function openAddModal() {
+            document.getElementById('fullName').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRole').selectedIndex = 0;
+            modal.show();
+        }
+
+        async function createUser() {
+            var fullName = document.getElementById('fullName').value.trim();
+            var userName = document.getElementById('userName').value.trim();
+            var email = document.getElementById('userEmail').value.trim();
+            var password = document.getElementById('userPassword').value;
+            var role = document.getElementById('userRole').value;
+
+            if (!fullName || !userName || !email || !password) {
+                showToast('Bütün sahələri doldurun', 'error');
+                return;
+            }
+
+            var result = await authFetch('/Auth/register', {
+                method: 'POST',
+                body: JSON.stringify({
+                    fullName: fullName,
+                    userName: userName,
+                    email: email,
+                    password: password,
+                    confirmPassword: password,
+                    role: role
+                })
+            });
+
+            if (result && result.success) {
+                showToast('İstifadəçi yaradıldı', 'success');
+                modal.hide();
+                loadUsers();
+            } else {
+                showToast(result ? result.message || 'Xəta baş verdi' : 'Server xətası', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

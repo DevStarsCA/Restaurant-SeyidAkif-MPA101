@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Sifarişlər</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li class="active"><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0">Sifarişlər</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <select class="form-select" id="statusFilter" onchange="filterOrders()">
+                        <option value="">Bütün statuslar</option>
+                        <option value="0">Gözləyir</option>
+                        <option value="1">Hazırlanır</option>
+                        <option value="2">Hazırdır</option>
+                        <option value="3">Verildi</option>
+                        <option value="4">Tamamlandı</option>
+                        <option value="5">Ləğv</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-custom">
+                <div class="card-custom-header">
+                    <h6><i class="fas fa-receipt"></i> Sifarişlər</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadOrders()"><i class="fas fa-sync"></i> Yenilə</button>
+                </div>
+                <div class="card-custom-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sifariş №</th>
+                                    <th>Masa</th>
+                                    <th>Məhsullar</th>
+                                    <th>Məbləğ</th>
+                                    <th>Status</th>
+                                    <th>Vaxt</th>
+                                    <th>Əməliyyat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table">
+                                <tr><td colspan="7" class="text-center text-muted">Yüklənir...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderModalTitle">Sifariş Detalları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bağla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+        var allOrders = [];
+        var orderModal = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
+            loadOrders();
+            setInterval(loadOrders, 30000);
+        });
+
+        async function loadOrders() {
+            var data = await authFetch('/Orders');
+            var tbody = document.getElementById('orders-table');
+
+            if (!data || !data.success || !data.data || data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Sifariş yoxdur</td></tr>';
+                return;
+            }
+
+            allOrders = data.data;
+            filterOrders();
+        }
+
+        function filterOrders() {
+            var status = document.getElementById('statusFilter').value;
+            var filtered = allOrders;
+            if (status !== '') {
+                filtered = allOrders.filter(function(o) { return o.status === parseInt(status); });
+            }
+            renderOrders(filtered);
+        }
+
+        function renderOrders(orders) {
+            var tbody = document.getElementById('orders-table');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Sifariş tapılmadı</td></tr>';
+                return;
+            }
+
+            var html = '';
+            orders.forEach(function(order) {
+                var itemCount = order.items ? order.items.length : 0;
+                var time = formatDateTime(order.createdDate);
+
+                html += '<tr>' +
+                    '<td><strong>#' + (order.orderNumber || order.id.substring(0, 8)) + '</strong></td>' +
+                    '<td>' + (order.tableName || 'Masa') + '</td>' +
+                    '<td><span class="badge bg-light text-dark">' + itemCount + ' məhsul</span></td>' +
+                    '<td><strong>₼' + (order.totalAmount || 0).toFixed(2) + '</strong></td>' +
+                    '<td>' + getOrderStatusBadge(order.status) + '</td>' +
+                    '<td><small>' + time + '</small></td>' +
+                    '<td>' +
+                    '  <button class="btn-action btn-view" onclick="viewOrder(\'' + order.id + '\')" title="Bax"><i class="fas fa-eye"></i></button> ' +
+                    '  <div class="btn-group">' +
+                    '    <button class="btn-action btn-edit dropdown-toggle" data-bs-toggle="dropdown" title="Status dəyiş"><i class="fas fa-exchange-alt"></i></button>' +
+                    '    <ul class="dropdown-menu">' +
+                    '      <li><a class="dropdown-item" href="#" onclick="updateStatus(\'' + order.id + '\',0)">Gözləyir</a></li>' +
+                    '      <li><a class="dropdown-item" href="#" onclick="updateStatus(\'' + order.id + '\',1)">Hazırlanır</a></li>' +
+                    '      <li><a class="dropdown-item" href="#" onclick="updateStatus(\'' + order.id + '\',2)">Hazırdır</a></li>' +
+                    '      <li><a class="dropdown-item" href="#" onclick="updateStatus(\'' + order.id + '\',3)">Verildi</a></li>' +
+                    '      <li><a class="dropdown-item" href="#" onclick="updateStatus(\'' + order.id + '\',4)">Tamamlandı</a></li>' +
+                    '      <li><hr class="dropdown-divider"></li>' +
+                    '      <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(\'' + order.id + '\',5)">Ləğv et</a></li>' +
+                    '    </ul>' +
+                    '  </div>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function viewOrder(id) {
+            var order = allOrders.find(function(o) { return o.id === id; });
+            if (!order) return;
+
+            document.getElementById('orderModalTitle').textContent = 'Sifariş #' + (order.orderNumber || order.id.substring(0, 8));
+
+            var itemsHtml = '';
+            if (order.items && order.items.length > 0) {
+                itemsHtml = '<table class="table"><thead><tr><th>Məhsul</th><th>Say</th><th>Qiymət</th><th>Cəmi</th></tr></thead><tbody>';
+                order.items.forEach(function(item) {
+                    itemsHtml += '<tr>' +
+                        '<td>' + (item.productName || 'Məhsul') + '</td>' +
+                        '<td>' + item.quantity + '</td>' +
+                        '<td>₼' + (item.unitPrice || 0).toFixed(2) + '</td>' +
+                        '<td>₼' + ((item.unitPrice || 0) * item.quantity).toFixed(2) + '</td>' +
+                        '</tr>';
+                });
+                itemsHtml += '</tbody></table>';
+            }
+
+            document.getElementById('orderModalBody').innerHTML =
+                '<div class="row mb-3">' +
+                '  <div class="col-md-6"><strong>Masa:</strong> ' + (order.tableName || 'Masa') + '</div>' +
+                '  <div class="col-md-6"><strong>Status:</strong> ' + getOrderStatusBadge(order.status) + '</div>' +
+                '</div>' +
+                '<div class="row mb-3">' +
+                '  <div class="col-md-6"><strong>Tarix:</strong> ' + formatDateTime(order.createdDate) + '</div>' +
+                '  <div class="col-md-6"><strong>Cəmi:</strong> <span class="text-success fw-bold">₼' + (order.totalAmount || 0).toFixed(2) + '</span></div>' +
+                '</div>' +
+                '<hr>' +
+                '<h6>Məhsullar</h6>' +
+                itemsHtml;
+
+            orderModal.show();
+        }
+
+        async function updateStatus(orderId, newStatus) {
+            var result = await authFetch('/Orders/' + orderId + '/status', {
+                method: 'PUT',
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (result && result.success) {
+                showToast('Status yeniləndi', 'success');
+                loadOrders();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

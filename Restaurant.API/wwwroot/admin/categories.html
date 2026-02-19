@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Kateqoriyalar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li class="active"><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0">Kateqoriyalar</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="card-custom">
+                <div class="card-custom-header">
+                    <h6><i class="fas fa-list"></i> Kateqoriyalar</h6>
+                    <button class="btn btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Yeni kateqoriya</button>
+                </div>
+                <div class="card-custom-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Şəkil</th>
+                                    <th>Ad</th>
+                                    <th>Məhsul sayı</th>
+                                    <th>Tarix</th>
+                                    <th>Əməliyyat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table">
+                                <tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Yeni kateqoriya</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="categoryId">
+                    <div class="mb-3">
+                        <label class="form-label">Kateqoriya adı *</label>
+                        <input type="text" class="form-control" id="categoryName" placeholder="Məs: Əsas yeməklər" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şəkil</label>
+                        <input type="file" class="form-control" id="categoryImage" accept="image/*">
+                        <div id="imagePreview" class="mt-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv et</button>
+                    <button type="button" class="btn btn-add" onclick="saveCategory()">Saxla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+        var modal = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+            loadCategories();
+        });
+
+        async function loadCategories() {
+            var data = await authFetch('/Categories/with-products');
+            var tbody = document.getElementById('categories-table');
+
+            if (!data || !data.success || !data.data || data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Kateqoriya yoxdur</td></tr>';
+                return;
+            }
+
+            var html = '';
+            data.data.forEach(function(cat) {
+                var img = cat.imageUrl
+                    ? '<img src="' + cat.imageUrl + '" class="img-preview" alt="' + cat.name + '">'
+                    : '<div class="img-preview d-flex align-items-center justify-content-center bg-light"><i class="fas fa-image text-muted"></i></div>';
+                var productCount = cat.products ? cat.products.length : 0;
+                var date = formatDate(cat.createdDate || new Date());
+
+                html += '<tr>' +
+                    '<td>' + img + '</td>' +
+                    '<td><strong>' + cat.name + '</strong></td>' +
+                    '<td><span class="badge bg-primary">' + productCount + ' məhsul</span></td>' +
+                    '<td>' + date + '</td>' +
+                    '<td>' +
+                    '  <button class="btn-action btn-edit" onclick="editCategory(\'' + cat.id + '\',\'' + cat.name.replace(/'/g, "\\'") + '\',\'' + (cat.imageUrl || '') + '\')" title="Redaktə et"><i class="fas fa-pen"></i></button> ' +
+                    '  <button class="btn-action btn-delete" onclick="deleteCategory(\'' + cat.id + '\')" title="Sil"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Yeni kateqoriya';
+            document.getElementById('categoryId').value = '';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryImage').value = '';
+            document.getElementById('imagePreview').innerHTML = '';
+            modal.show();
+        }
+
+        function editCategory(id, name, imageUrl) {
+            document.getElementById('modalTitle').textContent = 'Kateqoriyanı redaktə et';
+            document.getElementById('categoryId').value = id;
+            document.getElementById('categoryName').value = name;
+            document.getElementById('categoryImage').value = '';
+            if (imageUrl) {
+                document.getElementById('imagePreview').innerHTML = '<img src="' + imageUrl + '" class="img-preview" alt="preview">';
+            } else {
+                document.getElementById('imagePreview').innerHTML = '';
+            }
+            modal.show();
+        }
+
+        async function saveCategory() {
+            var id = document.getElementById('categoryId').value;
+            var name = document.getElementById('categoryName').value.trim();
+            var imageFile = document.getElementById('categoryImage').files[0];
+
+            if (!name) {
+                showToast('Kateqoriya adı daxil edin', 'error');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('Name', name);
+            if (imageFile) {
+                formData.append('Image', imageFile);
+            }
+
+            var result;
+            if (id) {
+                formData.append('Id', id);
+                result = await authFetchForm('/Categories/' + id, formData, 'PUT');
+            } else {
+                result = await authFetchForm('/Categories', formData, 'POST');
+            }
+
+            if (result && result.success) {
+                showToast(id ? 'Kateqoriya yeniləndi' : 'Kateqoriya yaradıldı', 'success');
+                modal.hide();
+                loadCategories();
+            } else {
+                showToast(result ? result.message || 'Xəta baş verdi' : 'Server xətası', 'error');
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirmAction('Bu kateqoriyanı silmək istədiyinizə əminsiniz?')) return;
+
+            var token = sessionStorage.getItem('token');
+            try {
+                var response = await fetch(API_BASE + '/Categories/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await response.json();
+                if (data.success) {
+                    showToast('Kateqoriya silindi', 'success');
+                    loadCategories();
+                } else {
+                    showToast(data.message || 'Silinə bilmədi', 'error');
+                }
+            } catch (err) {
+                showToast('Server xətası', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

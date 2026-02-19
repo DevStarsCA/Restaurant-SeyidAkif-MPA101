@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Məhsullar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li class="active"><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0">Məhsullar</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Filter -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Məhsul axtar..." oninput="filterProducts()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="categoryFilter" onchange="filterProducts()">
+                        <option value="">Bütün kateqoriyalar</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-custom">
+                <div class="card-custom-header">
+                    <h6><i class="fas fa-hamburger"></i> Məhsullar</h6>
+                    <button class="btn btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Yeni məhsul</button>
+                </div>
+                <div class="card-custom-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Şəkil</th>
+                                    <th>Ad</th>
+                                    <th>Kateqoriya</th>
+                                    <th>Qiymət</th>
+                                    <th>Əməliyyat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table">
+                                <tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Yeni məhsul</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="productId">
+                    <div class="mb-3">
+                        <label class="form-label">Məhsul adı *</label>
+                        <input type="text" class="form-control" id="productName" placeholder="Məs: Toyuq kabab">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Təsvir</label>
+                        <textarea class="form-control" id="productDesc" rows="3" placeholder="Məhsul haqqında qısa məlumat"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Qiymət (₼) *</label>
+                            <input type="number" class="form-control" id="productPrice" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Kateqoriya *</label>
+                            <select class="form-select" id="productCategory"></select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şəkil</label>
+                        <input type="file" class="form-control" id="productImage" accept="image/*">
+                        <div id="imagePreview" class="mt-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv et</button>
+                    <button type="button" class="btn btn-add" onclick="saveProduct()">Saxla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+        var modal = null;
+        var allProducts = [];
+        var allCategories = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            modal = new bootstrap.Modal(document.getElementById('productModal'));
+            loadCategories();
+            loadProducts();
+        });
+
+        async function loadCategories() {
+            var data = await authFetch('/Categories');
+            if (data && data.success && data.data) {
+                allCategories = data.data;
+                var filterSelect = document.getElementById('categoryFilter');
+                var productSelect = document.getElementById('productCategory');
+
+                allCategories.forEach(function(cat) {
+                    filterSelect.innerHTML += '<option value="' + cat.id + '">' + cat.name + '</option>';
+                    productSelect.innerHTML += '<option value="' + cat.id + '">' + cat.name + '</option>';
+                });
+            }
+        }
+
+        async function loadProducts() {
+            var data = await authFetch('/Products');
+            var tbody = document.getElementById('products-table');
+
+            if (!data || !data.success || !data.data || data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Məhsul yoxdur</td></tr>';
+                return;
+            }
+
+            allProducts = data.data;
+            renderProducts(allProducts);
+        }
+
+        function renderProducts(products) {
+            var tbody = document.getElementById('products-table');
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Məhsul tapılmadı</td></tr>';
+                return;
+            }
+
+            var html = '';
+            products.forEach(function(p) {
+                var img = p.imageUrl
+                    ? '<img src="' + p.imageUrl + '" class="img-preview" alt="' + p.name + '">'
+                    : '<div class="img-preview d-flex align-items-center justify-content-center bg-light"><i class="fas fa-image text-muted"></i></div>';
+                var catName = p.categoryName || getCategoryName(p.categoryId) || '-';
+
+                html += '<tr>' +
+                    '<td>' + img + '</td>' +
+                    '<td><strong>' + p.name + '</strong>' +
+                    (p.description ? '<br><small class="text-muted">' + p.description.substring(0, 50) + '</small>' : '') +
+                    '</td>' +
+                    '<td><span class="badge bg-info">' + catName + '</span></td>' +
+                    '<td><strong>₼' + p.price.toFixed(2) + '</strong></td>' +
+                    '<td>' +
+                    '  <button class="btn-action btn-edit" onclick="editProduct(\'' + p.id + '\')" title="Redaktə et"><i class="fas fa-pen"></i></button> ' +
+                    '  <button class="btn-action btn-delete" onclick="deleteProduct(\'' + p.id + '\')" title="Sil"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        function getCategoryName(catId) {
+            var cat = allCategories.find(function(c) { return c.id === catId; });
+            return cat ? cat.name : '';
+        }
+
+        function filterProducts() {
+            var search = document.getElementById('searchInput').value.toLowerCase();
+            var catId = document.getElementById('categoryFilter').value;
+
+            var filtered = allProducts.filter(function(p) {
+                var matchSearch = !search || p.name.toLowerCase().indexOf(search) > -1;
+                var matchCat = !catId || p.categoryId === catId;
+                return matchSearch && matchCat;
+            });
+            renderProducts(filtered);
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Yeni məhsul';
+            document.getElementById('productId').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productDesc').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productCategory').selectedIndex = 0;
+            document.getElementById('productImage').value = '';
+            document.getElementById('imagePreview').innerHTML = '';
+            modal.show();
+        }
+
+        function editProduct(id) {
+            var product = allProducts.find(function(p) { return p.id === id; });
+            if (!product) return;
+
+            document.getElementById('modalTitle').textContent = 'Məhsulu redaktə et';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productDesc').value = product.description || '';
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productCategory').value = product.categoryId;
+            document.getElementById('productImage').value = '';
+            if (product.imageUrl) {
+                document.getElementById('imagePreview').innerHTML = '<img src="' + product.imageUrl + '" class="img-preview" alt="preview">';
+            } else {
+                document.getElementById('imagePreview').innerHTML = '';
+            }
+            modal.show();
+        }
+
+        async function saveProduct() {
+            var id = document.getElementById('productId').value;
+            var name = document.getElementById('productName').value.trim();
+            var desc = document.getElementById('productDesc').value.trim();
+            var price = document.getElementById('productPrice').value;
+            var categoryId = document.getElementById('productCategory').value;
+            var imageFile = document.getElementById('productImage').files[0];
+
+            if (!name || !price || !categoryId) {
+                showToast('Ad, qiymət və kateqoriya daxil edin', 'error');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('Name', name);
+            formData.append('Description', desc);
+            formData.append('Price', price);
+            formData.append('CategoryId', categoryId);
+            if (imageFile) {
+                formData.append('Image', imageFile);
+            }
+
+            var result;
+            if (id) {
+                formData.append('Id', id);
+                result = await authFetchForm('/Products/' + id, formData, 'PUT');
+            } else {
+                result = await authFetchForm('/Products', formData, 'POST');
+            }
+
+            if (result && result.success) {
+                showToast(id ? 'Məhsul yeniləndi' : 'Məhsul yaradıldı', 'success');
+                modal.hide();
+                loadProducts();
+            } else {
+                showToast(result ? result.message || 'Xəta baş verdi' : 'Server xətası', 'error');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirmAction('Bu məhsulu silmək istədiyinizə əminsiniz?')) return;
+
+            var token = sessionStorage.getItem('token');
+            try {
+                var response = await fetch(API_BASE + '/Products/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await response.json();
+                if (data.success) {
+                    showToast('Məhsul silindi', 'success');
+                    loadProducts();
+                } else {
+                    showToast(data.message || 'Silinə bilmədi', 'error');
+                }
+            } catch (err) {
+                showToast('Server xətası', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

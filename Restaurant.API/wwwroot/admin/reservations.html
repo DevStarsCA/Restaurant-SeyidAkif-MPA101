@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Rezervasiyalar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li class="active"><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0">Rezervasiyalar</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="card-custom">
+                <div class="card-custom-header">
+                    <h6><i class="fas fa-calendar-check"></i> Rezervasiyalar</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadReservations()"><i class="fas fa-sync"></i> Yenilə</button>
+                </div>
+                <div class="card-custom-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Müştəri</th>
+                                    <th>Telefon</th>
+                                    <th>Qonaq</th>
+                                    <th>Tarix/Saat</th>
+                                    <th>Masa</th>
+                                    <th>Status</th>
+                                    <th>Əməliyyat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reservations-table">
+                                <tr><td colspan="7" class="text-center text-muted">Yüklənir...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReservations();
+        });
+
+        async function loadReservations() {
+            var data = await authFetch('/Reservations');
+            var tbody = document.getElementById('reservations-table');
+
+            if (!data || !data.success || !data.data || data.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Rezervasiya yoxdur</td></tr>';
+                return;
+            }
+
+            var html = '';
+            data.data.forEach(function(res) {
+                var dateTime = formatDateTime(res.reservationDate);
+
+                html += '<tr>' +
+                    '<td><strong>' + res.customerName + '</strong>' +
+                    (res.customerEmail ? '<br><small class="text-muted">' + res.customerEmail + '</small>' : '') +
+                    '</td>' +
+                    '<td>' + res.customerPhone + '</td>' +
+                    '<td><span class="badge bg-light text-dark">' + res.guestCount + ' nəfər</span></td>' +
+                    '<td>' + dateTime + '</td>' +
+                    '<td>' + (res.tableName || '-') + '</td>' +
+                    '<td>' + getReservationStatusBadge(res.status) + '</td>' +
+                    '<td>' +
+                    '  <button class="btn-action btn-view" onclick="confirmRes(\'' + res.id + '\')" title="Təsdiqlə"><i class="fas fa-check"></i></button> ' +
+                    '  <button class="btn-action btn-delete" onclick="cancelRes(\'' + res.id + '\')" title="Ləğv et"><i class="fas fa-times"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function confirmRes(id) {
+            var result = await authFetch('/Reservations/' + id + '/confirm', { method: 'PUT' });
+            if (result && result.success) {
+                showToast('Rezervasiya təsdiqləndi', 'success');
+                loadReservations();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+            }
+        }
+
+        async function cancelRes(id) {
+            if (!confirmAction('Rezervasiyanı ləğv etmək istəyirsiniz?')) return;
+            var result = await authFetch('/Reservations/' + id + '/cancel', { method: 'PUT' });
+            if (result && result.success) {
+                showToast('Rezervasiya ləğv edildi', 'success');
+                loadReservations();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
