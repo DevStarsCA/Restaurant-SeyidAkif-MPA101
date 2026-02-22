@@ -5,6 +5,7 @@ using Restaurant.Application.Interfaces;
 using Restaurant.Domain.Entities;
 using Restaurant.Domain.Enums;
 using Restaurant.Domain.Interfaces;
+using System.Linq.Expressions;
 
 namespace Application.Services;
 
@@ -18,6 +19,13 @@ public class OrderService : IOrderService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
+    public async Task<ApiResponse<List<OrderDto>>> GetAllAsync()
+    {
+        var orders = await _unitOfWork.Orders.GetAllOrdersWithDetailsAsync();
+        return ApiResponse<List<OrderDto>>.SuccessResponse(_mapper.Map<List<OrderDto>>(orders));
+    }
+
+
 
     public async Task<ApiResponse<OrderDto>> GetByIdAsync(Guid id)
     {

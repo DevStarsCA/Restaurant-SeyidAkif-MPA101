@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kassir Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .cashier-header {
+            background: #1a1a2e; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            color: #fff;
+        }
+        .cashier-header h4 { color: #c8a97e; margin: 0; }
+        .cashier-header .info { display: flex; align-items: center; gap: 20px; }
+        .cashier-header .clock { font-size: 18px; font-weight: 600; }
+        .btn-c { padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid; }
+        .btn-refresh-c { background: rgba(200,169,126,0.2); color: #c8a97e; border-color: #c8a97e; }
+        .btn-refresh-c:hover { background: #c8a97e; color: #fff; }
+        .btn-logout-c { background: rgba(231,74,59,0.2); color: #e74a3b; border-color: #e74a3b; }
+        .btn-logout-c:hover { background: #e74a3b; color: #fff; }
+
+        .cashier-content { display: flex; height: calc(100vh - 62px); }
+
+        .tables-panel {
+            flex: 1; padding: 20px; overflow-y: auto;
+        }
+        .tables-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        .table-tile {
+            background: #fff; border-radius: 12px; padding: 20px; text-align: center;
+            cursor: pointer; transition: all 0.3s; border: 2px solid transparent;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .table-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .table-tile.selected { border-color: #c8a97e; background: #fdf6ed; }
+        .table-tile.occupied { border-left: 4px solid #e74a3b; }
+        .table-tile.available { border-left: 4px solid #1cc88a; }
+        .table-tile .table-icon { font-size: 30px; margin-bottom: 10px; }
+        .table-tile.occupied .table-icon { color: #e74a3b; }
+        .table-tile.available .table-icon { color: #1cc88a; }
+        .table-tile .table-name { font-weight: 700; font-size: 16px; color: #2d3436; }
+        .table-tile .table-amount { font-size: 14px; color: #999; margin-top: 5px; }
+        .table-tile .table-amount.has-order { color: #e74a3b; font-weight: 600; }
+
+        .bill-panel {
+            width: 400px; background: #fff; border-left: 1px solid #e8e8e8;
+            display: flex; flex-direction: column;
+        }
+        .bill-header {
+            padding: 20px; border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        .bill-header h5 { margin: 0; color: #2d3436; }
+        .bill-header .bill-table { color: #c8a97e; font-weight: 600; font-size: 14px; margin-top: 5px; }
+
+        .bill-items {
+            flex: 1; overflow-y: auto; padding: 20px;
+        }
+        .bill-item {
+            display: flex; justify-content: space-between; padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0; font-size: 14px;
+        }
+        .bill-item .item-details { flex: 1; }
+        .bill-item .item-name { font-weight: 500; color: #2d3436; }
+        .bill-item .item-meta { color: #999; font-size: 12px; }
+        .bill-item .item-total { font-weight: 600; color: #2d3436; }
+
+        .bill-footer {
+            padding: 20px; border-top: 2px solid #f0f0f0;
+        }
+        .bill-total {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #2d3436;
+        }
+        .bill-total .amount { color: #1cc88a; }
+        .bill-actions { display: flex; gap: 10px; }
+        .btn-pay {
+            flex: 1; padding: 14px; border: none; border-radius: 10px;
+            font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-cash { background: #1cc88a; color: #fff; }
+        .btn-cash:hover { background: #17a673; }
+        .btn-card { background: #4e73df; color: #fff; }
+        .btn-card:hover { background: #3d5fc4; }
+        .btn-print { background: #f0f0f0; color: #555; }
+        .btn-print:hover { background: #e0e0e0; }
+
+        .empty-bill { text-align: center; padding: 60px 20px; color: #ccc; }
+        .empty-bill i { font-size: 50px; margin-bottom: 15px; }
+
+        .section-title { font-size: 14px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="cashier-header">
+        <h4><i class="fas fa-cash-register"></i> Kassir Paneli</h4>
+        <div class="info">
+            <div class="clock" id="clock">00:00</div>
+            <button class="btn-c btn-refresh-c" onclick="loadData()"><i class="fas fa-sync"></i> Yenilə</button>
+            <button class="btn-c btn-logout-c" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıxış</button>
+        </div>
+    </div>
+
+    <div class="cashier-content">
+        <!-- Masalar -->
+        <div class="tables-panel">
+            <div class="section-title">Masalar</div>
+            <div class="tables-grid" id="tables-grid">
+                <p class="text-muted">Yüklənir...</p>
+            </div>
+        </div>
+
+        <!-- Hesab -->
+        <div class="bill-panel">
+            <div class="bill-header">
+                <h5><i class="fas fa-receipt"></i> Hesab</h5>
+                <div class="bill-table" id="bill-table-name">Masa seçin</div>
+            </div>
+
+            <div class="bill-items" id="bill-items">
+                <div class="empty-bill">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Hesab görmək üçün masa seçin</p>
+                </div>
+            </div>
+
+            <div class="bill-footer" id="bill-footer" style="display:none;">
+                <div class="bill-total">
+                    <span>Cəmi:</span>
+                    <span class="amount" id="bill-total">₼0.00</span>
+                </div>
+                <div class="bill-actions">
+                    <button class="btn-pay btn-cash" id="btn-cash" onclick="payOrder('cash')">
+                        <i class="fas fa-money-bill"></i> Nağd
+                    </button>
+                    <button class="btn-pay btn-card" id="btn-card" onclick="payOrder('card')">
+                        <i class="fas fa-credit-card"></i> Kart
+                    </button>
+                    <button class="btn-pay btn-print" onclick="printBill()">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var API_BASE = '/api';
+        var token = sessionStorage.getItem('token');
+        if (!token) { window.location.href = 'login.html'; }
+
+        var allTables = [];
+        var allOrders = [];
+        var selectedTableId = null;
+        var selectedOrder = null;
+
+        // Saat
+        function updateClock() {
+            var now = new Date();
+            document.getElementById('clock').textContent =
+                now.toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function loadData() {
+            await loadTables();
+            await loadOrders();
+            renderTables();
+        }
+
+        async function loadTables() {
+            try {
+                var response = await fetch(API_BASE + '/Tables', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await response.json();
+                if (data.success && data.data) {
+                    allTables = data.data;
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadOrders() {
+            try {
+                var response = await fetch(API_BASE + '/Orders', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await response.json();
+                if (data.success && data.data) {
+                    allOrders = data.data.filter(function(o) {
+                        return o.status !== 4 && o.status !== 5;
+                    });
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function renderTables() {
+            var grid = document.getElementById('tables-grid');
+            if (allTables.length === 0) {
+                grid.innerHTML = '<p class="text-muted">Masa yoxdur</p>';
+                return;
+            }
+
+            var html = '';
+            allTables.forEach(function(table) {
+                var tableOrders = allOrders.filter(function(o) { return o.tableId === table.id; });
+                var totalAmount = tableOrders.reduce(function(sum, o) { return sum + (o.totalAmount || 0); }, 0);
+                var hasOrder = tableOrders.length > 0;
+                var statusClass = hasOrder ? 'occupied' : 'available';
+                var selectedClass = selectedTableId === table.id ? ' selected' : '';
+
+                html += '<div class="table-tile ' + statusClass + selectedClass + '" onclick="selectTable(\'' + table.id + '\')">' +
+                    '<div class="table-icon"><i class="fas fa-chair"></i></div>' +
+                    '<div class="table-name">' + table.name + '</div>' +
+                    '<div class="table-amount' + (hasOrder ? ' has-order' : '') + '">' +
+                    (hasOrder ? '₼' + totalAmount.toFixed(2) : 'Boş') +
+                    '</div>' +
+                    '</div>';
+            });
+            grid.innerHTML = html;
+        }
+
+        function selectTable(tableId) {
+            selectedTableId = tableId;
+            renderTables();
+
+            var table = allTables.find(function(t) { return t.id === tableId; });
+            var tableOrders = allOrders.filter(function(o) { return o.tableId === tableId; });
+
+            document.getElementById('bill-table-name').textContent = table ? table.name : 'Masa';
+
+            var billItems = document.getElementById('bill-items');
+            var billFooter = document.getElementById('bill-footer');
+
+            if (tableOrders.length === 0) {
+                billItems.innerHTML = '<div class="empty-bill"><i class="fas fa-check-circle" style="color:#1cc88a;"></i><p>Bu masada sifariş yoxdur</p></div>';
+                billFooter.style.display = 'none';
+                selectedOrder = null;
+                return;
+            }
+
+            var html = '';
+            var grandTotal = 0;
+
+            tableOrders.forEach(function(order) {
+                var orderNum = order.orderNumber || order.id.substring(0, 8);
+                html += '<div style="font-size:12px;color:#999;margin:10px 0 5px;font-weight:600;">Sifariş #' + orderNum + '</div>';
+
+                if (order.orderItems && order.orderItems.length > 0) {
+                    order.orderItems.forEach(function(item) {
+                        var itemTotal = (item.unitPrice || 0) * item.quantity;
+                        grandTotal += itemTotal;
+                        html += '<div class="bill-item">' +
+                            '<div class="item-details">' +
+                            '  <div class="item-name">' + (item.productName || 'Məhsul') + '</div>' +
+                            '  <div class="item-meta">' + item.quantity + ' x ₼' + (item.unitPrice || 0).toFixed(2) + '</div>' +
+                            '</div>' +
+                            '<div class="item-total">₼' + itemTotal.toFixed(2) + '</div>' +
+                            '</div>';
+                    });
+                }
+            });
+
+            selectedOrder = tableOrders;
+            billItems.innerHTML = html;
+            document.getElementById('bill-total').textContent = '₼' + grandTotal.toFixed(2);
+            billFooter.style.display = 'block';
+        }
+
+        async function payOrder(method) {
+            if (!selectedOrder || selectedOrder.length === 0) return;
+
+            var methodText = method === 'cash' ? 'Nağd' : 'Kart';
+            if (!confirm(methodText + ' ödəniş təsdiqləyirsiniz?')) return;
+
+            try {
+                for (var i = 0; i < selectedOrder.length; i++) {
+                    await fetch(API_BASE + '/Orders/' + selectedOrder[i].id + '/status', {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ status: 4 })
+                    });
+                }
+
+                alert('Ödəniş qəbul edildi! (' + methodText + ')');
+                selectedTableId = null;
+                selectedOrder = null;
+                document.getElementById('bill-table-name').textContent = 'Masa seçin';
+                document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-hand-pointer"></i><p>Hesab görmək üçün masa seçin</p></div>';
+                document.getElementById('bill-footer').style.display = 'none';
+                loadData();
+            } catch (err) {
+                alert('Xəta baş verdi');
+                console.error(err);
+            }
+        }
+
+        function printBill() {
+            if (!selectedOrder || selectedOrder.length === 0) return;
+
+            var table = allTables.find(function (t) { return t.id === selectedTableId; });
+            var w = window.open('', '_blank');
+            var html = '<html><head><title>Hesab<\/title>' +
+                '<style>body{font-family:monospace;padding:20px;max-width:300px;margin:0 auto;}' +
+                'h3{text-align:center;margin-bottom:20px;}' +
+                '.line{border-top:1px dashed #000;margin:10px 0;}' +
+                '.item{display:flex;justify-content:space-between;margin:5px 0;font-size:14px;}' +
+                '.total{font-size:18px;font-weight:bold;display:flex;justify-content:space-between;margin-top:10px;}' +
+                '.footer{text-align:center;margin-top:20px;font-size:12px;color:#999;}<\/style>' +
+                '<\/head><body>';
+
+            html += '<h3>RESTORAN<\/h3>';
+            html += '<p style="text-align:center;">' + (table ? table.name : 'Masa') + '<\/p>';
+            html += '<p style="text-align:center;font-size:12px;">' + new Date().toLocaleString('az') + '<\/p>';
+            html += '<div class="line"><\/div>';
+
+            var grandTotal = 0;
+            selectedOrder.forEach(function (order) {
+                if (order.orderItems) {
+                    order.orderItems.forEach(function (item) {
+                        var t = (item.unitPrice || 0) * item.quantity;
+                        grandTotal += t;
+                        html += '<div class="item"><span>' + item.quantity + 'x ' + (item.productName || 'Mehsul') + '<\/span><span>M' + t.toFixed(2) + '<\/span><\/div>';
+                    });
+                }
+            });
+
+            html += '<div class="line"><\/div>';
+            html += '<div class="total"><span>CEMI:<\/span><span>M' + grandTotal.toFixed(2) + '<\/span><\/div>';
+            html += '<div class="footer"><p>Nus olsun!<\/p><p>Bizi secdiyiniz ucun tesekkur edirik.<\/p><\/div>';
+            html += '<\/body><\/html>';
+
+            w.document.write(html);
+            w.document.close();
+            w.print();
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // İlk yüklə və 15 saniyədə bir yenilə
+        loadData();
+        setInterval(loadData, 15000);
+    </script>
+</body>
+</html>

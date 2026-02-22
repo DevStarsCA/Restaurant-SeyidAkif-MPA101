@@ -5,6 +5,7 @@ namespace Restaurant.Application.Interfaces;
 
 public interface IOrderService
 {
+    Task<ApiResponse<List<OrderDto>>> GetAllAsync();
     Task<ApiResponse<OrderDto>> GetByIdAsync(Guid id);
     Task<ApiResponse<List<OrderDto>>> GetByTableAsync(Guid tableId);
     Task<ApiResponse<List<KitchenOrderDto>>> GetKitchenOrdersAsync();

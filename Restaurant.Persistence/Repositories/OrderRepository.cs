@@ -73,4 +73,14 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
                 && !x.Payments.Any(p => p.Status == PaymentStatus.Completed))
             .SumAsync(x => x.TotalAmount);
     }
+    public async Task<IReadOnlyList<Order>> GetAllOrdersWithDetailsAsync()
+    {
+        return await _context.Orders
+            .Include(o => o.Table)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+    }
+
 }

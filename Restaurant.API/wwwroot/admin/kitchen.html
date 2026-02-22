@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mətbəx Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #1a1a2e; color: #fff; min-height: 100vh; }
+
+        .kitchen-header {
+            background: #16213e; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #c8a97e;
+        }
+        .kitchen-header h4 { color: #c8a97e; margin: 0; }
+        .kitchen-header .info { display: flex; align-items: center; gap: 20px; }
+        .kitchen-header .clock { font-size: 20px; font-weight: 600; color: #fff; }
+        .btn-logout-k { background: rgba(231,74,59,0.2); color: #e74a3b; border: 1px solid #e74a3b; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-logout-k:hover { background: #e74a3b; color: #fff; }
+        .btn-refresh { background: rgba(200,169,126,0.2); color: #c8a97e; border: 1px solid #c8a97e; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-refresh:hover { background: #c8a97e; color: #fff; }
+
+        .kitchen-tabs {
+            display: flex; gap: 10px; padding: 20px 30px; background: #16213e;
+        }
+        .kitchen-tab {
+            padding: 10px 25px; border-radius: 10px; cursor: pointer;
+            font-size: 14px; font-weight: 600; border: none; transition: all 0.3s;
+        }
+        .kitchen-tab.pending { background: rgba(246,194,62,0.2); color: #f6c23e; }
+        .kitchen-tab.pending.active { background: #f6c23e; color: #1a1a2e; }
+        .kitchen-tab.preparing { background: rgba(54,185,204,0.2); color: #36b9cc; }
+        .kitchen-tab.preparing.active { background: #36b9cc; color: #fff; }
+        .kitchen-tab.ready { background: rgba(28,200,138,0.2); color: #1cc88a; }
+        .kitchen-tab.ready.active { background: #1cc88a; color: #fff; }
+        .tab-count { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-size: 12px; }
+
+        .orders-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px; padding: 20px 30px;
+        }
+
+        .order-card {
+            background: #16213e; border-radius: 15px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;
+        }
+        .order-card:hover { border-color: #c8a97e; }
+        .order-card-header {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .order-card-header .order-num { font-weight: 700; font-size: 18px; }
+        .order-card-header .table-name { background: #c8a97e; color: #1a1a2e; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .order-time { font-size: 12px; color: rgba(255,255,255,0.5); }
+        .elapsed { font-size: 12px; padding: 3px 10px; border-radius: 6px; font-weight: 600; }
+        .elapsed.normal { background: rgba(28,200,138,0.2); color: #1cc88a; }
+        .elapsed.warning { background: rgba(246,194,62,0.2); color: #f6c23e; }
+        .elapsed.danger { background: rgba(231,74,59,0.2); color: #e74a3b; }
+
+        .order-card-body { padding: 15px 20px; }
+        .order-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .order-item:last-child { border-bottom: none; }
+        .order-item .item-name { font-size: 14px; }
+        .order-item .item-qty {
+            background: rgba(200,169,126,0.2); color: #c8a97e;
+            padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 14px;
+        }
+
+        .order-card-footer { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-status {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-start { background: #36b9cc; color: #fff; }
+        .btn-start:hover { background: #2c9faf; }
+        .btn-done { background: #1cc88a; color: #fff; }
+        .btn-done:hover { background: #17a673; }
+
+        .empty-state { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.4); }
+        .empty-state i { font-size: 60px; margin-bottom: 20px; }
+
+        .sound-alert { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="kitchen-header">
+        <h4><i class="fas fa-fire"></i> Mətbəx Paneli</h4>
+        <div class="info">
+            <div class="clock" id="clock">00:00</div>
+            <button class="btn-refresh" onclick="loadOrders()"><i class="fas fa-sync"></i> Yenilə</button>
+            <button class="btn-logout-k" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıxış</button>
+        </div>
+    </div>
+
+    <div class="kitchen-tabs">
+        <button class="kitchen-tab pending active" onclick="filterOrders(0, this)">
+            <i class="fas fa-clock"></i> Gözləyir <span class="tab-count" id="count-pending">0</span>
+        </button>
+        <button class="kitchen-tab preparing" onclick="filterOrders(1, this)">
+            <i class="fas fa-fire"></i> Hazırlanır <span class="tab-count" id="count-preparing">0</span>
+        </button>
+        <button class="kitchen-tab ready" onclick="filterOrders(2, this)">
+            <i class="fas fa-check"></i> Hazırdır <span class="tab-count" id="count-ready">0</span>
+        </button>
+    </div>
+
+    <div class="orders-grid" id="orders-container">
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Yüklənir...</p>
+        </div>
+    </div>
+
+    <audio id="new-order-sound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRl9vT19telefonXVAVkZNdCAQAAAAABAAEARKwAAIhYAQACABAAZGF0YQ==" type="audio/wav">
+    </audio>
+
+    <script>
+        var API_BASE = '/api';
+        var allOrders = [];
+        var currentFilter = 0;
+        var previousOrderCount = 0;
+
+        // Auth yoxla
+        var token = sessionStorage.getItem('token');
+        if (!token) { window.location.href = 'login.html'; }
+
+        // Saat
+        function updateClock() {
+            var now = new Date();
+            document.getElementById('clock').textContent =
+                now.toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Sifarişləri yüklə
+        async function loadOrders() {
+            try {
+                var response = await fetch(API_BASE + '/Orders', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await response.json();
+
+                if (data.success && data.data) {
+                    // Yeni sifariş gələndə səs çıxar
+                    var pendingCount = data.data.filter(function(o) { return o.status === 0; }).length;
+                    if (pendingCount > previousOrderCount && previousOrderCount > 0) {
+                        try { document.getElementById('new-order-sound').play(); } catch(e) {}
+                    }
+                    previousOrderCount = pendingCount;
+
+                    allOrders = data.data.filter(function(o) { return o.status <= 2; });
+                    updateCounts();
+                    filterOrders(currentFilter);
+                }
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        function updateCounts() {
+            document.getElementById('count-pending').textContent = allOrders.filter(function(o) { return o.status === 0; }).length;
+            document.getElementById('count-preparing').textContent = allOrders.filter(function(o) { return o.status === 1; }).length;
+            document.getElementById('count-ready').textContent = allOrders.filter(function(o) { return o.status === 2; }).length;
+        }
+
+        function filterOrders(status, btn) {
+            currentFilter = status;
+            // Tab active
+            document.querySelectorAll('.kitchen-tab').forEach(function(t) { t.classList.remove('active'); });
+            if (btn) btn.classList.add('active');
+            else document.querySelectorAll('.kitchen-tab')[status].classList.add('active');
+
+            var filtered = allOrders.filter(function(o) { return o.status === status; });
+            renderOrders(filtered, status);
+        }
+
+        function renderOrders(orders, status) {
+            var container = document.getElementById('orders-container');
+
+            if (orders.length === 0) {
+                var msgs = { 0: 'Gözləyən sifariş yoxdur', 1: 'Hazırlanan sifariş yoxdur', 2: 'Hazır sifariş yoxdur' };
+                var icons = { 0: 'fa-clock', 1: 'fa-fire', 2: 'fa-check-circle' };
+                container.innerHTML = '<div class="empty-state"><i class="fas ' + icons[status] + '"></i><p>' + msgs[status] + '</p></div>';
+                return;
+            }
+
+            var html = '';
+            orders.forEach(function(order) {
+                var elapsed = getElapsed(order.createdAt);
+                var elapsedClass = elapsed.minutes < 10 ? 'normal' : elapsed.minutes < 20 ? 'warning' : 'danger';
+
+                var itemsHtml = '';
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(function(item) {
+                        itemsHtml += '<div class="order-item">' +
+                            '<span class="item-name">' + (item.productName || 'Məhsul') + '</span>' +
+                            '<span class="item-qty">x' + item.quantity + '</span>' +
+                            '</div>';
+                    });
+                }
+
+                var btnHtml = '';
+                if (status === 0) {
+                    btnHtml = '<button class="btn-status btn-start" onclick="updateStatus(\'' + order.id + '\', 1)"><i class="fas fa-fire"></i> Hazırlamağa başla</button>';
+                } else if (status === 1) {
+                    btnHtml = '<button class="btn-status btn-done" onclick="updateStatus(\'' + order.id + '\', 2)"><i class="fas fa-check"></i> Hazırdır</button>';
+                }
+
+                var orderNum = order.orderNumber || order.id.substring(0, 8);
+                var time = new Date(order.createdAt).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
+
+                html += '<div class="order-card">' +
+                    '<div class="order-card-header">' +
+                    '  <div><div class="order-num">#' + orderNum + '</div><div class="order-time">' + time + '</div></div>' +
+                    '  <div style="text-align:right;"><span class="table-name">' + (order.tableName || 'Masa') + '</span><br>' +
+                    '  <span class="elapsed ' + elapsedClass + '">' + elapsed.text + '</span></div>' +
+                    '</div>' +
+                    '<div class="order-card-body">' + itemsHtml + '</div>' +
+                    (btnHtml ? '<div class="order-card-footer">' + btnHtml + '</div>' : '') +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function getElapsed(dateStr) {
+            var diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
+            var minutes = Math.floor(diff / 60);
+            var seconds = diff % 60;
+            return {
+                minutes: minutes,
+                text: minutes + ' dəq ' + seconds + ' san'
+            };
+        }
+
+        async function updateStatus(orderId, newStatus) {
+            try {
+                var response = await fetch(API_BASE + '/Orders/status', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId: orderId, status: newStatus })
+                });
+                var data = await response.json();
+                if (data.success) {
+                    loadOrders();
+                }
+            } catch (err) {
+                console.error('Update error:', err);
+            }
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // İlk yüklə və 10 saniyədə bir yenilə
+        loadOrders();
+        setInterval(loadOrders, 10000);
+    </script>
+</body>
+</html>

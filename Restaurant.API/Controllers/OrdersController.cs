@@ -19,6 +19,12 @@ public class OrdersController : ControllerBase
         _orderService = orderService;
         _orderHub = orderHub;
     }
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _orderService.GetAllAsync();
+        return Ok(result);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
