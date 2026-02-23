@@ -197,7 +197,7 @@
                 });
                 var data = await response.json();
                 if (data.success && data.data) {
-                    allOrders = data.data.filter(function(o) {
+                    allOrders = data.data.filter(function (o) {
                         return o.status !== 4 && o.status !== 5;
                     });
                 }
@@ -212,9 +212,9 @@
             }
 
             var html = '';
-            allTables.forEach(function(table) {
-                var tableOrders = allOrders.filter(function(o) { return o.tableId === table.id; });
-                var totalAmount = tableOrders.reduce(function(sum, o) { return sum + (o.totalAmount || 0); }, 0);
+            allTables.forEach(function (table) {
+                var tableOrders = allOrders.filter(function (o) { return o.tableId === table.id; });
+                var totalAmount = tableOrders.reduce(function (sum, o) { return sum + (o.totalAmount || 0); }, 0);
                 var hasOrder = tableOrders.length > 0;
                 var statusClass = hasOrder ? 'occupied' : 'available';
                 var selectedClass = selectedTableId === table.id ? ' selected' : '';
@@ -234,8 +234,8 @@
             selectedTableId = tableId;
             renderTables();
 
-            var table = allTables.find(function(t) { return t.id === tableId; });
-            var tableOrders = allOrders.filter(function(o) { return o.tableId === tableId; });
+            var table = allTables.find(function (t) { return t.id === tableId; });
+            var tableOrders = allOrders.filter(function (o) { return o.tableId === tableId; });
 
             document.getElementById('bill-table-name').textContent = table ? table.name : 'Masa';
 
@@ -252,12 +252,12 @@
             var html = '';
             var grandTotal = 0;
 
-            tableOrders.forEach(function(order) {
+            tableOrders.forEach(function (order) {
                 var orderNum = order.orderNumber || order.id.substring(0, 8);
                 html += '<div style="font-size:12px;color:#999;margin:10px 0 5px;font-weight:600;">Sifariş #' + orderNum + '</div>';
 
                 if (order.orderItems && order.orderItems.length > 0) {
-                    order.orderItems.forEach(function(item) {
+                    order.orderItems.forEach(function (item) {
                         var itemTotal = (item.unitPrice || 0) * item.quantity;
                         grandTotal += itemTotal;
                         html += '<div class="bill-item">' +
@@ -356,6 +356,27 @@
         // İlk yüklə və 15 saniyədə bir yenilə
         loadData();
         setInterval(loadData, 15000);
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/order")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("NewOrder", function (orderNumber, tableName) {
+            loadData();
+        });
+
+        connection.on("OrderStatusChanged", function (orderNumber, status) {
+            loadData();
+        });
+
+        connection.start().then(function () {
+            connection.invoke("JoinCashier");
+        }).catch(function (err) {
+            console.log("SignalR error:", err);
+        });
     </script>
 </body>
 </html>

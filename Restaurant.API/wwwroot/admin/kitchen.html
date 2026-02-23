@@ -152,13 +152,13 @@
 
                 if (data.success && data.data) {
                     // Yeni sifariş gələndə səs çıxar
-                    var pendingCount = data.data.filter(function(o) { return o.status === 0; }).length;
+                    var pendingCount = data.data.filter(function (o) { return o.status === 0; }).length;
                     if (pendingCount > previousOrderCount && previousOrderCount > 0) {
-                        try { document.getElementById('new-order-sound').play(); } catch(e) {}
+                        try { document.getElementById('new-order-sound').play(); } catch (e) { }
                     }
                     previousOrderCount = pendingCount;
 
-                    allOrders = data.data.filter(function(o) { return o.status <= 2; });
+                    allOrders = data.data.filter(function (o) { return o.status <= 2; });
                     updateCounts();
                     filterOrders(currentFilter);
                 }
@@ -168,19 +168,19 @@
         }
 
         function updateCounts() {
-            document.getElementById('count-pending').textContent = allOrders.filter(function(o) { return o.status === 0; }).length;
-            document.getElementById('count-preparing').textContent = allOrders.filter(function(o) { return o.status === 1; }).length;
-            document.getElementById('count-ready').textContent = allOrders.filter(function(o) { return o.status === 2; }).length;
+            document.getElementById('count-pending').textContent = allOrders.filter(function (o) { return o.status === 0; }).length;
+            document.getElementById('count-preparing').textContent = allOrders.filter(function (o) { return o.status === 1; }).length;
+            document.getElementById('count-ready').textContent = allOrders.filter(function (o) { return o.status === 2; }).length;
         }
 
         function filterOrders(status, btn) {
             currentFilter = status;
             // Tab active
-            document.querySelectorAll('.kitchen-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.kitchen-tab').forEach(function (t) { t.classList.remove('active'); });
             if (btn) btn.classList.add('active');
             else document.querySelectorAll('.kitchen-tab')[status].classList.add('active');
 
-            var filtered = allOrders.filter(function(o) { return o.status === status; });
+            var filtered = allOrders.filter(function (o) { return o.status === status; });
             renderOrders(filtered, status);
         }
 
@@ -195,13 +195,13 @@
             }
 
             var html = '';
-            orders.forEach(function(order) {
+            orders.forEach(function (order) {
                 var elapsed = getElapsed(order.createdAt);
                 var elapsedClass = elapsed.minutes < 10 ? 'normal' : elapsed.minutes < 20 ? 'warning' : 'danger';
 
                 var itemsHtml = '';
                 if (order.items && order.items.length > 0) {
-                    order.items.forEach(function(item) {
+                    order.items.forEach(function (item) {
                         itemsHtml += '<div class="order-item">' +
                             '<span class="item-name">' + (item.productName || 'Məhsul') + '</span>' +
                             '<span class="item-qty">x' + item.quantity + '</span>' +
@@ -269,6 +269,34 @@
         // İlk yüklə və 10 saniyədə bir yenilə
         loadOrders();
         setInterval(loadOrders, 10000);
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/order")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("NewOrder", function (orderNumber, tableName) {
+            loadOrders();
+            if (Notification.permission === "granted") {
+                new Notification("Yeni Sifaris!", { body: "#" + orderNumber + " - " + tableName });
+            }
+        });
+
+        connection.on("OrderStatusChanged", function (orderNumber, status) {
+            loadOrders();
+        });
+
+        connection.start().then(function () {
+            connection.invoke("JoinKitchen");
+        }).catch(function (err) {
+            console.log("SignalR error:", err);
+        });
+
+        if (Notification.permission === "default") {
+            Notification.requestPermission();
+        }
     </script>
 </body>
 </html>

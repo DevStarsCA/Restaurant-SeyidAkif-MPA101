@@ -306,16 +306,13 @@
                 rd.setHours(parseInt(tp[0]), parseInt(tp[1]), 0);
 
                 try {
-                    const tr = await fetch(`${API_BASE}/Tables`);
-                    const td = await tr.json();
                     const gc = parseInt(guests);
-                    const st = td.data?.find(t => t.capacity >= gc && t.status === 0);
-                    if (!st) { showMsg('Uyğun masa tapılmadı.', false); return; }
 
                     const r = await fetch(`${API_BASE}/Reservations`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ customerName: name, customerPhone: phone, customerEmail: email || null, reservationDate: rd.toISOString(), guestCount: gc, note: note || null, tableId: st.id })
+                        body: JSON.stringify({ customerName: name, customerPhone: phone, customerEmail: email || null, reservationDate: rd.toISOString(), guestCount: gc, note: note || null })
                     });
+
                     const d = await r.json();
                     if (d.success) {
                         showMsg('Rezervasiya uğurla yaradıldı!', true);

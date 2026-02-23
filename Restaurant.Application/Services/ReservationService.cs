@@ -31,19 +31,49 @@ public class ReservationService : IReservationService
 
     public async Task<ApiResponse<ReservationDto>> CreateAsync(CreateReservationDto dto)
     {
-        var table = await _unitOfWork.Tables.GetByIdAsync(dto.TableId);
-        if (table == null) return ApiResponse<ReservationDto>.FailResponse("Masa tapılmadı.");
+        Guid tableId;
 
-        var isReserved = await _unitOfWork.Reservations.IsTableReservedAsync(dto.TableId, dto.ReservationDate);
-        if (isReserved) return ApiResponse<ReservationDto>.FailResponse("Bu masa həmin tarixdə artıq rezerv edilib.");
+        if (dto.TableId.HasValue && dto.TableId.Value != Guid.Empty)
+        {
+            // Frontend masa gonderdise yoxla
+            var table = await _unitOfWork.Tables.GetByIdAsync(dto.TableId.Value);
+            if (table == null) return ApiResponse<ReservationDto>.FailResponse("Masa tapilmadi.");
+
+            var isReserved = await _unitOfWork.Reservations.IsTableReservedAsync(dto.TableId.Value, dto.ReservationDate);
+            if (isReserved) return ApiResponse<ReservationDto>.FailResponse("Bu masa hemin tarixde artiq rezerv edilib.");
+
+            tableId = dto.TableId.Value;
+        }
+        else
+        {
+            // Avtomatik uygun masa tap
+            var allTables = await _unitOfWork.Tables.GetAllAsync();
+            var suitableTables = allTables.Where(t => t.Capacity >= dto.GuestCount).OrderBy(t => t.Capacity).ToList();
+
+            Guid? foundTableId = null;
+            foreach (var t in suitableTables)
+            {
+                var isReserved = await _unitOfWork.Reservations.IsTableReservedAsync(t.Id, dto.ReservationDate);
+                if (!isReserved)
+                {
+                    foundTableId = t.Id;
+                    break;
+                }
+            }
+
+            if (!foundTableId.HasValue)
+                return ApiResponse<ReservationDto>.FailResponse("Hemin tarix ve qonaq sayi ucun uygun masa tapilmadi.");
+
+            tableId = foundTableId.Value;
+        }
 
         var reservation = _mapper.Map<Reservation>(dto);
+        reservation.TableId = tableId;
         await _unitOfWork.Reservations.AddAsync(reservation);
         await _unitOfWork.SaveChangesAsync();
 
-        return ApiResponse<ReservationDto>.SuccessResponse(_mapper.Map<ReservationDto>(reservation), "Rezervasiya yaradıldı.");
+        return ApiResponse<ReservationDto>.SuccessResponse(_mapper.Map<ReservationDto>(reservation), "Rezervasiya yaradildi.");
     }
-
     public async Task<ApiResponse<ReservationDto>> UpdateStatusAsync(UpdateReservationStatusDto dto)
     {
         var reservation = await _unitOfWork.Reservations.GetByIdAsync(dto.Id);

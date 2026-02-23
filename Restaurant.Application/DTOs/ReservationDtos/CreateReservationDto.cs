@@ -8,5 +8,5 @@ public class CreateReservationDto
     public DateTime ReservationDate { get; set; }
     public int GuestCount { get; set; }
     public string? Note { get; set; }
-    public Guid TableId { get; set; }
+    public Guid? TableId { get; set; }
 }

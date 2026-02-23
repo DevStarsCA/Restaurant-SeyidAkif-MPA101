@@ -523,21 +523,7 @@
                 reservationDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0);
 
                 try {
-                    const tablesRes = await fetch(`${API_BASE}/Tables`);
-                    const tablesData = await tablesRes.json();
-
-                    if (!tablesData.success || !tablesData.data || tablesData.data.length === 0) {
-                        showResMessage('Hal-hazırda boş masa yoxdur.', false);
-                        return;
-                    }
-
                     const guestCount = parseInt(guests);
-                    const suitableTable = tablesData.data.find(t => t.capacity >= guestCount && t.status === 0);
-
-                    if (!suitableTable) {
-                        showResMessage('Hal-hazırda uyğun masa yoxdur.', false);
-                        return;
-                    }
 
                     const response = await fetch(`${API_BASE}/Reservations`, {
                         method: 'POST',
@@ -546,8 +532,7 @@
                             customerName: name, customerPhone: phone,
                             customerEmail: email || null,
                             reservationDate: reservationDate.toISOString(),
-                            guestCount: guestCount, note: note || null,
-                            tableId: suitableTable.id
+                            guestCount: guestCount, note: note || null
                         })
                     });
 
