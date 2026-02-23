@@ -11,5 +11,7 @@ namespace Restaurant.Domain.Enums;
         Preparing,      // Mətbəxdə hazırlanır
         Ready,          // Hazırdır, ofisiant gətirməlidir
         Delivered,      // Masaya çatdırılıb
-        Cancelled       // Ləğv edilib
+        Cancelled,       // Ləğv edilib
+        Completed      // Ödənilib, tamamlanıb
+
     }

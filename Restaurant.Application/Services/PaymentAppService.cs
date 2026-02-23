@@ -37,6 +37,11 @@ public class PaymentAppService : IPaymentService_App
         };
 
         await _unitOfWork.Payments.AddAsync(payment);
+
+        // Sifarişi tamamla
+        order.Status = OrderStatus.Completed;
+        _unitOfWork.Orders.Update(order);
+
         await CheckAndFreeTableAsync(order.TableId);
         await _unitOfWork.SaveChangesAsync();
 

@@ -157,8 +157,8 @@
                 var ordersRes = await authFetch('/Orders');
                 if (ordersRes && ordersRes.success && ordersRes.data) {
                     var today = new Date().toDateString();
-                    var todayOrders = ordersRes.data.filter(function(o) {
-                        return new Date(o.createdDate).toDateString() === today;
+                    var todayOrders = ordersRes.data.filter(function (o) {
+                        return new Date(o.createdAt || o.createdDate).toDateString() === today;
                     });
                     document.getElementById('stat-orders').textContent = todayOrders.length;
 
@@ -174,7 +174,7 @@
                         var html = '';
                         recent.forEach(function(order) {
                             var statusBadge = getStatusBadge(order.status);
-                            var time = new Date(order.createdDate).toLocaleTimeString('az', {hour:'2-digit',minute:'2-digit'});
+                            var time = new Date(order.createdAt || order.createdDate).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
                             html += '<tr>' +
                                 '<td><strong>#' + (order.orderNumber || order.id.substring(0,8)) + '</strong></td>' +
                                 '<td>' + (order.tableName || 'Masa') + '</td>' +

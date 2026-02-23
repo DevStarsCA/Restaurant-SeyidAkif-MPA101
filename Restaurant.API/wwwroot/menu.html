@@ -109,6 +109,36 @@
                                 </p>
                             </div>
                         </div>
+                        <!-- Hesab -->
+                        <div class="tst-minicart" id="bill-container" style="display:none;">
+                            <a href="#." class="tst-cart" id="btn-show-bill">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <div class="tst-cart-number" id="bill-count" style="background:#e74a3b;">0</div>
+                            </a>
+                            <div class="tst-bill-window" id="bill-window" style="min-width:320px;display:none;position:absolute;right:0;top:100%;background:#fff;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.15);padding:20px;z-index:999;">
+                                <div class="tst-minicart-header">
+                                    <h5>Hesabiniz</h5>
+                                </div>
+                                <div id="bill-items" style="max-height:400px;overflow-y:auto;padding:10px 0;">
+                                    <p style="text-align:center;color:#999;">Yuklanir...</p>
+                                </div>
+                                <p class="woocommerce-mini-cart__total total">
+                                    <strong>Cemi:</strong> <span id="bill-total">M0.00</span>
+                                </p>
+                                <p class="woocommerce-mini-cart__buttons buttons">
+                                    <a href="#." class="button checkout wc-forward" id="btn-bill-pay">Onlayn ode</a>
+                                </p>
+                                <p class="woocommerce-mini-cart__buttons buttons" style="margin-top:5px;">
+                                    <a href="#." class="button wc-forward" id="btn-bill-cash" style="background:#4CAF50;">Masada ode</a>
+                                </p>
+                            </div>
+                        </div>
                         <div class="tst-menu-button-frame">
                             <div class="tst-menu-btn">
                                 <div class="tst-burger"><span></span></div>
@@ -574,7 +604,24 @@
                     saveCart();
                     updateCartUI();
                     $('.tst-minicart-window').removeClass('tst-active');
-                    alert('Sifarişiniz qəbul edildi! Sifariş nömrəsi: ' + orderData.data.orderNumber);
+                    var payChoice = confirm('Sifarişiniz qəbul edildi! #' + orderData.data.orderNumber + '\n\nOnline ödəmək istəyirsiniz? (OK = Online ödə, Cancel = Masada ödə)');
+                    if (payChoice) {
+                        try {
+                            var payRes = await fetch(API_BASE + '/Payments/online/' + orderData.data.id, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                            var payData = await payRes.json();
+                            if (payData.success && payData.data && payData.data.hppUrl) {
+                                window.location.href = payData.data.hppUrl;
+                                return;
+                            } else {
+                                alert('Online odenis yaradila bilmedi. Masada odeyeceksiniz.');
+                            }
+                        } catch (e) {
+                            alert('Odenis xetasi. Masada odeyeceksiniz.');
+                        }
+                    }
                     window.location.href = 'order-status.html?orderId=' + orderData.data.id + '&tableId=' + tableId;
                 } else {
                     alert(orderData.message || 'Sifariş zamanı xəta baş verdi.');
@@ -606,23 +653,7 @@
             reservationDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0);
 
             try {
-                var tablesRes = await fetch(API_BASE + '/Tables');
-                var tablesData = await tablesRes.json();
                 var guestCount = parseInt(guests);
-                var suitableTable = null;
-                if (tablesData.data) {
-                    for (var i = 0; i < tablesData.data.length; i++) {
-                        if (tablesData.data[i].capacity >= guestCount && tablesData.data[i].status === 0) {
-                            suitableTable = tablesData.data[i];
-                            break;
-                        }
-                    }
-                }
-
-                if (!suitableTable) {
-                    showResMessage('Uyğun masa tapılmadı.', false);
-                    return;
-                }
 
                 var response = await fetch(API_BASE + '/Reservations', {
                     method: 'POST',
@@ -633,8 +664,7 @@
                         customerEmail: email || null,
                         reservationDate: reservationDate.toISOString(),
                         guestCount: guestCount,
-                        note: note || null,
-                        tableId: suitableTable.id
+                        note: note || null
                     })
                 });
                 var data = await response.json();
@@ -663,7 +693,86 @@
                 }, 3000);
             }
         }
+        // Hesab funksiyasi
+        if (isInRestaurant) {
+            $('#bill-container').show();
+            loadBill();
+            setInterval(loadBill, 15000);
+
+            $('#btn-show-bill').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('.tst-minicart-window').hide();
+                $('#bill-window').toggle();
+            });
+
+            $('.tst-cart').on('click', function (e) {
+                if (!$(this).is('#btn-show-bill')) {
+                    $('#bill-window').hide();
+                }
+            });
+
+            $('#btn-bill-pay').on('click', async function (e) {
+                e.preventDefault();
+                if (!billOrders || billOrders.length === 0) { alert('Sifaris yoxdur'); return; }
+                try {
+                    var res = await fetch(API_BASE + '/Payments/online/' + billOrders[0].id, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    var data = await res.json();
+                    if (data.success && data.data && data.data.hppUrl) {
+                        window.location.href = data.data.hppUrl;
+                    } else {
+                        alert('Online odenis mumkun deyil. Masada odeyeceksiniz.');
+                    }
+                } catch (err) { alert('Server xetasi'); }
+            });
+
+            $('#btn-bill-cash').on('click', function (e) {
+                e.preventDefault();
+                alert('Kassir masaniza gelecek. Tesekkurler!');
+            });
+        }
+
+        var billOrders = [];
+        async function loadBill() {
+            if (!tableId) return;
+            try {
+                var res = await fetch(API_BASE + '/Orders/table/' + tableId);
+                var data = await res.json();
+                if (!data.success || !data.data) return;
+
+                billOrders = data.data.filter(function (o) { return o.status !== 5 && o.status !== 4; });
+                var billItems = $('#bill-items');
+                billItems.empty();
+                var total = 0;
+                var itemCount = 0;
+
+                billOrders.forEach(function (order) {
+                    var st = order.status === 0 ? 'Gozleyir' : order.status === 1 ? 'Hazirlanir' : order.status === 2 ? 'Hazirdir' : 'Getirildi';
+                    billItems.append('<div style="background:#f8f8f8;padding:8px 12px;margin:5px 0;border-radius:8px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;"><span>#' + order.orderNumber + '</span><span style="color:#c8a97e;">' + st + '</span></div>');
+
+                    var items = order.orderItems || order.items || [];
+                    items.forEach(function (item) {
+                        var name = item.productName || (item.product ? item.product.name : 'Mehsul');
+                        var price = (item.unitPrice || 0) * (item.quantity || 1);
+                        total += price;
+                        itemCount += item.quantity || 1;
+                        billItems.append('<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13px;"><span>' + item.quantity + 'x ' + name + '</span><span style="font-weight:600;">M' + price.toFixed(2) + '</span></div>');
+                    });
+                });
+
+                $('#bill-count').text(itemCount);
+                $('#bill-total').text('M' + total.toFixed(2));
+
+                if (billOrders.length === 0) {
+                    billItems.html('<p style="text-align:center;color:#999;padding:20px;">Aktiv sifaris yoxdur</p>');
+                }
+            } catch (err) { console.error(err); }
+        }
     </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
     <script>
         if (tableId) {
