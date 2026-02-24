@@ -9,4 +9,5 @@ public interface IReservationService
     Task<ApiResponse<List<ReservationDto>>> GetByDateAsync(DateTime date);
     Task<ApiResponse<ReservationDto>> CreateAsync(CreateReservationDto dto);
     Task<ApiResponse<ReservationDto>> UpdateStatusAsync(UpdateReservationStatusDto dto);
+    Task<ApiResponse<bool>> DeleteAsync(Guid id);
 }

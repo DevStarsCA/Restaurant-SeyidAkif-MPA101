@@ -27,6 +27,7 @@
             <li class="divider"></li>
             <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
             <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li><a href="waiter.html"><i class="fas fa-user-tie"></i> <span>Ofisiant Panel</span></a></li>
             <li class="divider"></li>
             <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
         </ul>
@@ -158,7 +159,7 @@
                 if (ordersRes && ordersRes.success && ordersRes.data) {
                     var today = new Date().toDateString();
                     var todayOrders = ordersRes.data.filter(function (o) {
-                        return new Date(o.createdAt || o.createdDate).toDateString() === today;
+                        return new Date(o.orderDate || o.orderDate).toDateString() === today;
                     });
                     document.getElementById('stat-orders').textContent = todayOrders.length;
 
@@ -174,7 +175,7 @@
                         var html = '';
                         recent.forEach(function(order) {
                             var statusBadge = getStatusBadge(order.status);
-                            var time = new Date(order.createdAt || order.createdDate).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
+                            var time = new Date(order.orderDate || order.orderDate).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
                             html += '<tr>' +
                                 '<td><strong>#' + (order.orderNumber || order.id.substring(0,8)) + '</strong></td>' +
                                 '<td>' + (order.tableName || 'Masa') + '</td>' +

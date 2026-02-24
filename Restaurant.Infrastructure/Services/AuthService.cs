@@ -136,6 +136,26 @@ namespace Restaurant.Infrastructure.Services
             });
         }
 
+        public async Task<ApiResponse<List<UserDto>>> GetAllUsersAsync()
+        {
+            var users = _userManager.Users.ToList();
+            var userDtos = new List<UserDto>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userDtos.Add(new UserDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    UserName = user.UserName ?? "",
+                    Email = user.Email ?? "",
+                    Role = roles.FirstOrDefault() ?? ""
+                });
+            }
+
+            return ApiResponse<List<UserDto>>.SuccessResponse(userDtos);
+        }
         private string GenerateJwtToken(AppUser user, IList<string> roles)
         {
             var claims = new List<Claim>
@@ -199,5 +219,6 @@ namespace Restaurant.Infrastructure.Services
                 return null;
             }
         }
+
     }
 }

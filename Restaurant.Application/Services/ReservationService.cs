@@ -16,7 +16,7 @@ public class ReservationService : IReservationService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
-
+   
     public async Task<ApiResponse<List<ReservationDto>>> GetAllAsync()
     {
         var reservations = await _unitOfWork.Reservations.GetAllAsync();
@@ -104,5 +104,15 @@ public class ReservationService : IReservationService
         await _unitOfWork.SaveChangesAsync();
 
         return ApiResponse<ReservationDto>.SuccessResponse(_mapper.Map<ReservationDto>(reservation), "Status yeniləndi.");
+    }
+    public async Task<ApiResponse<bool>> DeleteAsync(Guid id)
+    {
+        var reservation = await _unitOfWork.Reservations.GetByIdAsync(id);
+        if (reservation == null) return ApiResponse<bool>.FailResponse("Tapilmadi.");
+
+        _unitOfWork.Reservations.Delete(reservation);
+        await _unitOfWork.SaveChangesAsync();
+
+        return ApiResponse<bool>.SuccessResponse(true, "Rezervasiya silindi.");
     }
 }

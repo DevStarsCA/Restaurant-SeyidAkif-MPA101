@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Restaurant.Application.DTOs.AuthDtos;
 using Restaurant.Application.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 namespace Restaurant.API.Controllers;
 
 [Route("api/[controller]")]
@@ -28,6 +28,14 @@ public class AuthController : ControllerBase
     {
         var result = await _authService.RegisterAsync(dto);
         if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("users")]
+    public async Task<IActionResult> GetUsers()
+    {
+        var result = await _authService.GetAllUsersAsync();
         return Ok(result);
     }
 

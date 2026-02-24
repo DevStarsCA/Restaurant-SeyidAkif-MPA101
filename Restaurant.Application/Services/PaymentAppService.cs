@@ -38,10 +38,13 @@ public class PaymentAppService : IPaymentService_App
 
         await _unitOfWork.Payments.AddAsync(payment);
 
-        // Sifarişi tamamla
         order.Status = OrderStatus.Completed;
         _unitOfWork.Orders.Update(order);
 
+        // Evvelce save et ki DB-de status yenilensin
+        await _unitOfWork.SaveChangesAsync();
+
+        // Sonra masani yoxla ve bosalt
         await CheckAndFreeTableAsync(order.TableId);
         await _unitOfWork.SaveChangesAsync();
 

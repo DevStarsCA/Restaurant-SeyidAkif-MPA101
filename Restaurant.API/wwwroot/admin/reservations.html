@@ -75,7 +75,7 @@
     <script>
         checkAuth();
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadReservations();
         });
 
@@ -88,8 +88,26 @@
                 return;
             }
 
+            // Vaxti 1 saatdan cox kecmisleri avtomatik sil
+            var now = new Date();
+            var activeList = [];
+            for (var i = 0; i < data.data.length; i++) {
+                var resDate = new Date(data.data[i].reservationDate);
+                var diffHours = (now - resDate) / (1000 * 60 * 60);
+                if (diffHours > 1) {
+                    await authFetch('/Reservations/' + data.data[i].id, { method: 'DELETE' });
+                } else {
+                    activeList.push(data.data[i]);
+                }
+            }
+
+            if (activeList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Rezervasiya yoxdur</td></tr>';
+                return;
+            }
+
             var html = '';
-            data.data.forEach(function(res) {
+            activeList.forEach(function (res) {
                 var dateTime = formatDateTime(res.reservationDate);
 
                 html += '<tr>' +
@@ -97,13 +115,13 @@
                     (res.customerEmail ? '<br><small class="text-muted">' + res.customerEmail + '</small>' : '') +
                     '</td>' +
                     '<td>' + res.customerPhone + '</td>' +
-                    '<td><span class="badge bg-light text-dark">' + res.guestCount + ' nəfər</span></td>' +
+                    '<td><span class="badge bg-light text-dark">' + res.guestCount + ' nefer</span></td>' +
                     '<td>' + dateTime + '</td>' +
                     '<td>' + (res.tableName || '-') + '</td>' +
                     '<td>' + getReservationStatusBadge(res.status) + '</td>' +
                     '<td>' +
-                    '  <button class="btn-action btn-view" onclick="confirmRes(\'' + res.id + '\')" title="Təsdiqlə"><i class="fas fa-check"></i></button> ' +
-                    '  <button class="btn-action btn-delete" onclick="cancelRes(\'' + res.id + '\')" title="Ləğv et"><i class="fas fa-times"></i></button>' +
+                    (res.status === 0 ? '  <button class="btn-action btn-view" onclick="confirmRes(\'' + res.id + '\')" title="Tesdiqle"><i class="fas fa-check"></i></button> ' : '') +
+                    '  <button class="btn-action btn-delete" onclick="cancelRes(\'' + res.id + '\')" title="Legv et / Sil"><i class="fas fa-times"></i></button>' +
                     '</td>' +
                     '</tr>';
             });
@@ -111,24 +129,29 @@
         }
 
         async function confirmRes(id) {
-            var result = await authFetch('/Reservations/' + id + '/confirm', { method: 'PUT' });
+            var result = await authFetch('/Reservations/status', {
+                method: 'PUT',
+                body: JSON.stringify({ id: id, status: 1 })
+            });
             if (result && result.success) {
-                showToast('Rezervasiya təsdiqləndi', 'success');
+                showToast('Rezervasiya tesdiqlendi', 'success');
                 loadReservations();
             } else {
-                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+                showToast(result ? result.message || 'Xeta' : 'Server xetasi', 'error');
             }
         }
 
         async function cancelRes(id) {
-            if (!confirmAction('Rezervasiyanı ləğv etmək istəyirsiniz?')) return;
-            var result = await authFetch('/Reservations/' + id + '/cancel', { method: 'PUT' });
-            if (result && result.success) {
-                showToast('Rezervasiya ləğv edildi', 'success');
-                loadReservations();
-            } else {
-                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
-            }
+            if (!confirmAction('Rezervasiyani legv etmek / silmek isteyirsiniz?')) return;
+            // Legv et
+            await authFetch('/Reservations/status', {
+                method: 'PUT',
+                body: JSON.stringify({ id: id, status: 2 })
+            });
+            // Sonra sil
+            await authFetch('/Reservations/' + id, { method: 'DELETE' });
+            showToast('Rezervasiya silindi', 'success');
+            loadReservations();
         }
     </script>
 </body>

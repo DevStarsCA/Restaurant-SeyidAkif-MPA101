@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ofisiant Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .waiter-header {
+            background: #1a1a2e; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center; color: #fff;
+        }
+        .waiter-header h4 { color: #c8a97e; margin: 0; }
+        .waiter-header .info { display: flex; align-items: center; gap: 15px; }
+        .waiter-header .waiter-name { color: #c8a97e; font-weight: 600; }
+        .btn-h { padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid; }
+        .btn-refresh-h { background: rgba(200,169,126,0.2); color: #c8a97e; border-color: #c8a97e; }
+        .btn-refresh-h:hover { background: #c8a97e; color: #fff; }
+        .btn-logout-h { background: rgba(231,74,59,0.2); color: #e74a3b; border-color: #e74a3b; }
+        .btn-logout-h:hover { background: #e74a3b; color: #fff; }
+
+        .waiter-content { display: flex; height: calc(100vh - 62px); }
+
+        .left-panel { flex: 1; padding: 20px; overflow-y: auto; }
+        .right-panel {
+            width: 380px; background: #fff; border-left: 1px solid #e8e8e8;
+            display: flex; flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 13px; font-weight: 600; color: #999;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;
+        }
+
+        /* Masalar */
+        .tables-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;
+            margin-bottom: 30px;
+        }
+        .table-tile {
+            background: #fff; border-radius: 12px; padding: 18px; cursor: pointer;
+            transition: all 0.3s; border: 2px solid transparent;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative;
+        }
+        .table-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .table-tile.selected { border-color: #c8a97e; background: #fdf6ed; }
+        .table-tile .table-icon { font-size: 28px; margin-bottom: 8px; color: #c8a97e; }
+        .table-tile .table-name { font-weight: 700; font-size: 15px; color: #2d3436; }
+        .table-tile .table-info { font-size: 12px; color: #999; margin-top: 5px; }
+        .table-tile .badge-ready {
+            position: absolute; top: 10px; right: 10px;
+            background: #e74a3b; color: #fff; padding: 3px 8px;
+            border-radius: 12px; font-size: 10px; font-weight: 700;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* Sifarisler */
+        .orders-section { margin-top: 10px; }
+        .order-card {
+            background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid #e0e0e0;
+        }
+        .order-card.status-pending { border-left-color: #f6c23e; }
+        .order-card.status-preparing { border-left-color: #36b9cc; }
+        .order-card.status-ready { border-left-color: #e74a3b; background: #fff5f5; }
+        .order-card.status-delivered { border-left-color: #1cc88a; }
+
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .order-number { font-weight: 700; font-size: 14px; color: #2d3436; }
+        .order-status { padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: 600; }
+        .st-pending { background: #fff3cd; color: #856404; }
+        .st-preparing { background: #d1ecf1; color: #0c5460; }
+        .st-ready { background: #f8d7da; color: #721c24; }
+        .st-delivered { background: #d4edda; color: #155724; }
+
+        .order-items { font-size: 13px; color: #555; }
+        .order-items .item { display: flex; justify-content: space-between; padding: 3px 0; }
+        .order-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-action-w {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-deliver { background: #1cc88a; color: #fff; }
+        .btn-deliver:hover { background: #17a673; }
+
+        /* Chat */
+        .chat-header {
+            padding: 15px 20px; border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        .chat-header h5 { margin: 0; font-size: 16px; color: #2d3436; }
+        .chat-header .chat-table { color: #c8a97e; font-size: 13px; font-weight: 600; }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 15px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .chat-msg {
+            max-width: 80%; padding: 10px 15px; border-radius: 15px;
+            font-size: 13px; line-height: 1.4;
+        }
+        .chat-msg.from-customer {
+            background: #e8f4f8; color: #2d3436; align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        .chat-msg.from-waiter {
+            background: #c8a97e; color: #fff; align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        .chat-msg .msg-time { font-size: 10px; opacity: 0.7; margin-top: 3px; }
+        .chat-input-area {
+            padding: 15px; border-top: 1px solid #f0f0f0;
+            display: flex; gap: 10px;
+        }
+        .chat-input-area input {
+            flex: 1; padding: 10px 15px; border: 1px solid #e0e0e0;
+            border-radius: 25px; font-size: 13px; outline: none;
+        }
+        .chat-input-area input:focus { border-color: #c8a97e; }
+        .chat-input-area button {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #c8a97e; color: #fff; border: none;
+            cursor: pointer; font-size: 14px;
+        }
+        .chat-input-area button:hover { background: #b8956e; }
+
+        .empty-chat {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: #ccc;
+        }
+        .empty-chat i { font-size: 50px; margin-bottom: 15px; }
+
+        .notification-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #e74a3b; color: #fff; width: 20px; height: 20px;
+            border-radius: 50%; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="waiter-header">
+        <h4><i class="fas fa-user-tie"></i> Ofisiant Paneli</h4>
+        <div class="info">
+            <span class="waiter-name" id="waiter-name">Ofisiant</span>
+            <button class="btn-h btn-refresh-h" onclick="loadData()"><i class="fas fa-sync"></i> Yenile</button>
+            <button class="btn-h btn-logout-h" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cixis</button>
+        </div>
+    </div>
+
+    <div class="waiter-content">
+        <!-- Sol panel - Masalar ve Sifarisler -->
+        <div class="left-panel">
+            <div class="section-title">Masalarim</div>
+            <div class="tables-grid" id="tables-grid">
+                <p style="color:#999;">Yuklanir...</p>
+            </div>
+
+            <div class="section-title">Sifarisler</div>
+            <div class="orders-section" id="orders-section">
+                <p style="color:#999;">Masa secin...</p>
+            </div>
+        </div>
+
+        <!-- Sag panel - Chat -->
+        <div class="right-panel">
+            <div class="chat-header">
+                <h5><i class="fas fa-comments"></i> Mesajlar</h5>
+                <div class="chat-table" id="chat-table-name">Masa secin</div>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="empty-chat">
+                    <i class="fas fa-comments"></i>
+                    <p>Mesaj gormek ucun masa secin</p>
+                </div>
+            </div>
+            <div class="chat-input-area" id="chat-input-area" style="display:none;">
+                <input type="text" id="chat-input" placeholder="Mesaj yazin..." onkeypress="if(event.key==='Enter')sendMessage()">
+                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        var API_BASE = '/api';
+        var token = sessionStorage.getItem('token');
+        if (!token) { window.location.href = 'login.html'; }
+
+        var waiterId = null;
+        var selectedTableId = null;
+        var allTables = [];
+        var allOrders = [];
+        var chatMessages = {};
+
+        // SignalR
+        var orderConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/order")
+            .withAutomaticReconnect()
+            .build();
+
+        var chatConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/chat")
+            .withAutomaticReconnect()
+            .build();
+
+        // Sifaris bildiriseri
+        orderConnection.on("OrderReady", function(orderNumber, tableName) {
+            loadData();
+            if (Notification.permission === "granted") {
+                new Notification("Sifaris hazirdir!", { body: "#" + orderNumber + " - " + tableName });
+            }
+        });
+
+        orderConnection.on("NewOrder", function(orderNumber, tableName) {
+            loadData();
+        });
+
+        orderConnection.on("OrderStatusChanged", function(orderNumber, status) {
+            loadData();
+        });
+
+        // Chat bildirisleri
+        chatConnection.on("ReceiveMessage", function(tableId, message, isFromCustomer) {
+            if (!chatMessages[tableId]) chatMessages[tableId] = [];
+            chatMessages[tableId].push({
+                text: message,
+                fromCustomer: isFromCustomer,
+                time: new Date().toLocaleTimeString('az', {hour:'2-digit', minute:'2-digit'})
+            });
+            if (selectedTableId === tableId) {
+                renderChat();
+            }
+            // Notification
+            if (isFromCustomer && Notification.permission === "granted") {
+                var table = allTables.find(function(t) { return t.tableId === tableId; });
+                new Notification("Yeni mesaj!", { body: (table ? table.tableName : "Masa") + ": " + message });
+            }
+        });
+
+        // Baslat
+        async function init() {
+            // Waiter ID tap
+            await findWaiterId();
+            if (!waiterId) {
+                document.querySelector('.left-panel').innerHTML = '<div style="text-align:center;padding:60px;"><h4 style="color:#999;">Ofisiant profili tapilmadi</h4><p style="color:#ccc;">Admin sizin profilinizi yaratmalidir.</p></div>';
+                return;
+            }
+
+            // SignalR qos
+            try {
+                await orderConnection.start();
+                await orderConnection.invoke("JoinWaiter", waiterId);
+            } catch(e) { console.log("OrderHub error:", e); }
+
+            try {
+                await chatConnection.start();
+            } catch(e) { console.log("ChatHub error:", e); }
+
+            if (Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+
+            loadData();
+            setInterval(loadData, 15000);
+        }
+
+        async function findWaiterId() {
+            try {
+                var res = await fetch(API_BASE + '/Waiters', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await res.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    // AppUserId ile eslesen ofisianti tap
+                    var user = JSON.parse(sessionStorage.getItem('user') || '{}');
+                    var waiter = data.data.find(function(w) { return w.appUserId === user.id; });
+                    if (waiter) {
+                        waiterId = waiter.id;
+                        document.getElementById('waiter-name').textContent = waiter.fullName;
+                    } else {
+                        // Ilk ofisianti gotur (test ucun)
+                        waiterId = data.data[0].id;
+                        document.getElementById('waiter-name').textContent = data.data[0].fullName;
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadData() {
+            if (!waiterId) return;
+            try {
+                var res = await fetch(API_BASE + '/Waiters/panel/' + waiterId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await res.json();
+                if (data.success && data.data) {
+                    allTables = data.data.tables || [];
+                    renderTables();
+                    if (selectedTableId) {
+                        loadTableOrders(selectedTableId);
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function renderTables() {
+            var grid = document.getElementById('tables-grid');
+            if (allTables.length === 0) {
+                grid.innerHTML = '<p style="color:#999;">Size teyin olunmus masa yoxdur.</p>';
+                return;
+            }
+
+            var html = '';
+            allTables.forEach(function(table) {
+                var sel = selectedTableId === table.tableId ? ' selected' : '';
+                html += '<div class="table-tile' + sel + '" onclick="selectTable(\'' + table.tableId + '\')">';
+                if (table.hasReadyOrder) {
+                    html += '<div class="badge-ready"><i class="fas fa-bell"></i> HAZIR</div>';
+                }
+                html += '<div class="table-icon"><i class="fas fa-chair"></i></div>';
+                html += '<div class="table-name">' + table.tableName + '</div>';
+                html += '<div class="table-info">' + table.activeOrderCount + ' aktiv sifaris</div>';
+                html += '</div>';
+            });
+            grid.innerHTML = html;
+        }
+
+        async function selectTable(tableId) {
+            selectedTableId = tableId;
+            renderTables();
+            loadTableOrders(tableId);
+
+            // Chat ucun join
+            var table = allTables.find(function(t) { return t.tableId === tableId; });
+            document.getElementById('chat-table-name').textContent = table ? table.tableName : 'Masa';
+            document.getElementById('chat-input-area').style.display = 'flex';
+
+            try {
+                await chatConnection.invoke("JoinWaiterChat", waiterId);
+                await chatConnection.invoke("JoinTableChat", tableId);
+            } catch(e) {}
+
+            renderChat();
+        }
+
+        async function loadTableOrders(tableId) {
+            try {
+                var res = await fetch(API_BASE + '/Orders/table/' + tableId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await res.json();
+                var section = document.getElementById('orders-section');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    section.innerHTML = '<p style="color:#999;text-align:center;">Bu masada sifaris yoxdur</p>';
+                    return;
+                }
+
+                var activeOrders = data.data.filter(function(o) {
+                    return o.status !== 4 && o.status !== 5;
+                });
+
+                if (activeOrders.length === 0) {
+                    section.innerHTML = '<p style="color:#999;text-align:center;">Aktiv sifaris yoxdur</p>';
+                    return;
+                }
+
+                var html = '';
+                activeOrders.forEach(function(order) {
+                    var statusClass = order.status === 0 ? 'status-pending' : order.status === 1 ? 'status-preparing' : order.status === 2 ? 'status-ready' : 'status-delivered';
+                    var statusText = order.status === 0 ? 'Gozleyir' : order.status === 1 ? 'Hazirlanir' : order.status === 2 ? 'Hazirdir' : 'Getirildi';
+                    var stClass = order.status === 0 ? 'st-pending' : order.status === 1 ? 'st-preparing' : order.status === 2 ? 'st-ready' : 'st-delivered';
+
+                    html += '<div class="order-card ' + statusClass + '">';
+                    html += '<div class="order-header">';
+                    html += '<span class="order-number">#' + order.orderNumber + '</span>';
+                    html += '<span class="order-status ' + stClass + '">' + statusText + '</span>';
+                    html += '</div>';
+                    html += '<div class="order-items">';
+
+                    var items = order.orderItems || order.items || [];
+                    items.forEach(function(item) {
+                        var name = item.productName || (item.product ? item.product.name : 'Mehsul');
+                        html += '<div class="item"><span>' + item.quantity + 'x ' + name + '</span><span>M' + ((item.unitPrice || 0) * item.quantity).toFixed(2) + '</span></div>';
+                    });
+
+                    html += '</div>';
+
+                    // Hazir olan sifarisleri masaya gonder
+                    if (order.status === 2) {
+                        html += '<div class="order-actions">';
+                        html += '<button class="btn-action-w btn-deliver" onclick="deliverOrder(\'' + order.id + '\')"><i class="fas fa-check"></i> Masaya gonder</button>';
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+                section.innerHTML = html;
+            } catch(e) { console.error(e); }
+        }
+
+        async function deliverOrder(orderId) {
+            try {
+                var res = await fetch(API_BASE + '/Orders/status', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId: orderId, status: 3 })
+                });
+                var data = await res.json();
+                if (data.success) {
+                    loadData();
+                } else {
+                    alert(data.message || 'Xeta');
+                }
+            } catch(e) { alert('Server xetasi'); }
+        }
+
+        function renderChat() {
+            var container = document.getElementById('chat-messages');
+            var messages = chatMessages[selectedTableId] || [];
+
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="empty-chat"><i class="fas fa-comments"></i><p>Hele mesaj yoxdur</p></div>';
+                return;
+            }
+
+            var html = '';
+            messages.forEach(function(msg) {
+                var cls = msg.fromCustomer ? 'from-customer' : 'from-waiter';
+                html += '<div class="chat-msg ' + cls + '">';
+                html += '<div>' + msg.text + '</div>';
+                html += '<div class="msg-time">' + msg.time + '</div>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            var input = document.getElementById('chat-input');
+            var text = input.value.trim();
+            if (!text || !selectedTableId) return;
+
+            try {
+                await chatConnection.invoke("SendMessageToTable", selectedTableId, text);
+                if (!chatMessages[selectedTableId]) chatMessages[selectedTableId] = [];
+                chatMessages[selectedTableId].push({
+                    text: text,
+                    fromCustomer: false,
+                    time: new Date().toLocaleTimeString('az', {hour:'2-digit', minute:'2-digit'})
+                });
+                input.value = '';
+                renderChat();
+            } catch(e) {
+                alert('Mesaj gonderilemedi');
+            }
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // Baslat
+        init();
+    </script>
+</body>
+</html>

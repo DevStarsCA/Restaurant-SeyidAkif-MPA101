@@ -48,4 +48,13 @@ public class ReservationsController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _reservationService.DeleteAsync(id);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
 }

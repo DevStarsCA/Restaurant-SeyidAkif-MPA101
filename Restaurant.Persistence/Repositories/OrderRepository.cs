@@ -38,7 +38,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
         return await _dbSet
             .Include(x => x.OrderItems).ThenInclude(oi => oi.Product)
             .Include(x => x.Table)
-            .Where(x => x.Status != OrderStatus.Cancelled && x.Status != OrderStatus.Delivered)
+            .Where(x => x.Status != OrderStatus.Cancelled && x.Status != OrderStatus.Completed && x.Status != OrderStatus.Delivered)
             .OrderBy(x => x.OrderDate)
             .AsNoTracking()
             .ToListAsync();
@@ -60,6 +60,7 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(x => x.Payments)
             .Where(x => x.TableId == tableId
                 && x.Status != OrderStatus.Cancelled
+                && x.Status != OrderStatus.Completed
                 && !x.Payments.Any(p => p.Status == PaymentStatus.Completed))
             .AsNoTracking()
             .ToListAsync();
