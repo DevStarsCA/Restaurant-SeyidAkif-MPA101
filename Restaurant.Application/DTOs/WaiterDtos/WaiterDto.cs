@@ -14,5 +14,6 @@ public class WaiterDto
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
     public string? AppUserId { get; set; }
-    public List<string> AssignedTables { get; set; } = new();
+    public List<WaiterTableDto> WaiterTables { get; set; } = new();
 }
+

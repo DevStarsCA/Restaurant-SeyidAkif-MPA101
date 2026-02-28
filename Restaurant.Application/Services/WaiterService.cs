@@ -83,7 +83,16 @@ public class WaiterService : IWaiterService
         var table = await _unitOfWork.Tables.GetByIdAsync(dto.TableId);
         if (table == null) return ApiResponse<bool>.FailResponse("Masa tapılmadı.");
 
-        waiter.WaiterTables.Add(new WaiterTable { WaiterId = dto.WaiterId, TableId = dto.TableId });
+        var waiterWithTables = await _unitOfWork.Waiters.GetWaiterWithTablesAsync(dto.WaiterId);
+        if (waiterWithTables != null && waiterWithTables.WaiterTables.Any(wt => wt.TableId == dto.TableId && wt.IsActive))
+            return ApiResponse<bool>.FailResponse("Bu masa artıq bu ofisianta təyin olunub.");
+
+        var allWaiters = await _unitOfWork.Waiters.GetActiveWaitersAsync();
+        var alreadyAssigned = allWaiters.Any(w => w.WaiterTables.Any(wt => wt.TableId == dto.TableId && wt.IsActive));
+        if (alreadyAssigned)
+            return ApiResponse<bool>.FailResponse("Bu masa artıq başqa ofisianta təyin olunub.");
+
+        await _unitOfWork.Waiters.AssignTableAsync(dto.WaiterId, dto.TableId);
         await _unitOfWork.SaveChangesAsync();
 
         return ApiResponse<bool>.SuccessResponse(true, $"{waiter.FullName} → {table.Name} təyin edildi.");

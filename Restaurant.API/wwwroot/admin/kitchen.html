@@ -298,5 +298,31 @@
             Notification.requestPermission();
         }
     </script>
+    <script>
+        // Kitchen chat
+        var kitchenChatConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/chat")
+            .withAutomaticReconnect()
+            .build();
+
+        kitchenChatConnection.on("ReceiveMessage", function (tableId, message, isFromCustomer) {
+            if (isFromCustomer) {
+                // Musteriden mesaj
+                var div = document.createElement("div");
+                div.style.cssText = "position:fixed;top:20px;right:20px;background:#4e73df;color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);max-width:350px;";
+                div.innerHTML = '<div style="font-size:12px;opacity:0.8;">Masadan mesaj:</div><div>' + message + '</div>';
+                document.body.appendChild(div);
+                setTimeout(function () { div.remove(); }, 8000);
+
+                if (Notification.permission === "granted") {
+                    new Notification("Masadan mesaj", { body: message });
+                }
+            }
+        });
+
+        kitchenChatConnection.start().then(function () {
+            kitchenChatConnection.invoke("JoinTableChat", "kitchen");
+        }).catch(function (err) { console.log("ChatHub error:", err); });
+    </script>
 </body>
 </html>

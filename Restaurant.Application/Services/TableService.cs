@@ -54,6 +54,9 @@ public class TableService : ITableService
 
     public async Task<ApiResponse<TableDto>> CreateAsync(CreateTableDto dto)
     {
+        var existing = await _unitOfWork.Tables.GetAsync(t => t.Name == dto.Name);
+        if (existing.Any()) return ApiResponse<TableDto>.FailResponse("Bu adda masa artıq mövcuddur.");
+
         var table = _mapper.Map<Domain.Entities.Table>(dto);
         table.QRCode = _qrCodeService.GenerateQRCode(table.Id.ToString());
 
@@ -67,7 +70,8 @@ public class TableService : ITableService
     {
         var table = await _unitOfWork.Tables.GetByIdAsync(dto.Id);
         if (table == null) return ApiResponse<TableDto>.FailResponse("Masa tapılmadı.");
-
+        var existing = await _unitOfWork.Tables.GetAsync(t => t.Name == dto.Name && t.Id != dto.Id);
+        if (existing.Any()) return ApiResponse<TableDto>.FailResponse("Bu adda masa artıq mövcuddur.");
         table.Name = dto.Name;
         table.Capacity = dto.Capacity;
         table.Status = dto.Status;

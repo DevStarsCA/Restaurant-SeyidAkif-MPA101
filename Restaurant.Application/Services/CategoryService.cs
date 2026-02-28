@@ -36,6 +36,8 @@ public class CategoryService : ICategoryService
 
     public async Task<ApiResponse<CategoryDto>> CreateAsync(CreateCategoryDto dto, IFormFile? image)
     {
+        var existing = await _unitOfWork.Categories.GetAsync(c => c.Name == dto.Name);
+        if (existing.Any()) return ApiResponse<CategoryDto>.FailResponse("Bu adda kateqoriya artıq mövcuddur.");
         var category = _mapper.Map<Category>(dto);
         if (image != null) category.ImageUrl = await _cloudinaryService.UploadImageAsync(image, "categories");
 
@@ -48,7 +50,8 @@ public class CategoryService : ICategoryService
     {
         var category = await _unitOfWork.Categories.GetByIdAsync(dto.Id);
         if (category == null) return ApiResponse<CategoryDto>.FailResponse("Tapılmadı.");
-
+        var existing = await _unitOfWork.Categories.GetAsync(c => c.Name == dto.Name && c.Id != dto.Id);
+        if (existing.Any()) return ApiResponse<CategoryDto>.FailResponse("Bu adda kateqoriya artıq mövcuddur.");
         category.Name = dto.Name;
         category.Description = dto.Description;
         category.DisplayOrder = dto.DisplayOrder;

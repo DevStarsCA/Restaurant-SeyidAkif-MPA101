@@ -7,6 +7,7 @@ public interface IWaiterRepository : IGenericRepository<Waiter>
     Task<Waiter?> GetWaiterWithTablesAsync(Guid waiterId);
     Task<Waiter?> GetWaiterByUserIdAsync(string userId);
     Task<IReadOnlyList<Waiter>> GetActiveWaitersAsync();
+    Task AssignTableAsync(Guid waiterId, Guid tableId);
 }
 
 

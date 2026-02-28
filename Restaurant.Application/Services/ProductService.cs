@@ -42,6 +42,9 @@ public class ProductService : IProductService
 
     public async Task<ApiResponse<ProductDto>> CreateAsync(CreateProductDto dto, IFormFile? image)
     {
+        var existing = await _unitOfWork.Products.GetAsync(p => p.Name == dto.Name);
+        if (existing.Any()) return ApiResponse<ProductDto>.FailResponse("Bu adda məhsul artıq mövcuddur.");
+
         var product = _mapper.Map<Product>(dto);
         if (image != null) product.ImageUrl = await _cloudinaryService.UploadImageAsync(image, "products");
 
@@ -54,7 +57,8 @@ public class ProductService : IProductService
     {
         var product = await _unitOfWork.Products.GetByIdAsync(dto.Id);
         if (product == null) return ApiResponse<ProductDto>.FailResponse("Tapılmadı.");
-
+        var existing = await _unitOfWork.Products.GetAsync(p => p.Name == dto.Name && p.Id != dto.Id);
+        if (existing.Any()) return ApiResponse<ProductDto>.FailResponse("Bu adda məhsul artıq mövcuddur.");
         product.Name = dto.Name;
         product.Description = dto.Description;
         product.Price = dto.Price;

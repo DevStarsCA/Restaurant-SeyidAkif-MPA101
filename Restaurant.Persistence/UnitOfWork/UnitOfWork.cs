@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Restaurant.Domain.Interfaces;
 using Restaurant.Domain.Interfaces.Repositories;
 using Restaurant.Persistence.Context;
 using Restaurant.Persistence.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Restaurant.Persistence.UnitOfWork;
 
@@ -20,7 +21,6 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
     }
-
     private ITableRepository? _tables;
     private ICategoryRepository? _categories;
     private IProductRepository? _products;

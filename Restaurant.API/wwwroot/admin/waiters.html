@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Ofisiantlar</title>
+    <title>Admin - İstifadəçilər & Ofisiantlar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="css/admin.css" rel="stylesheet">
@@ -19,10 +19,11 @@
             <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
             <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
             <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
-            <li class="active"><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>Ofisiantlar</span></a></li>
+            <li class="active"><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>İstifadəçilər</span></a></li>
             <li class="divider"></li>
             <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
             <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li><a href="waiter.html"><i class="fas fa-user-tie"></i> <span>Ofisiant Panel</span></a></li>
             <li class="divider"></li>
             <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
         </ul>
@@ -32,7 +33,7 @@
         <div class="topbar">
             <div class="topbar-left">
                 <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
-                <h5 class="mb-0">Ofisiantlar</h5>
+                <h5 class="mb-0">İstifadəçilər & Ofisiantlar</h5>
             </div>
             <div class="topbar-right">
                 <span class="user-name" id="user-name">Admin</span>
@@ -41,9 +42,10 @@
         </div>
 
         <div class="content-area">
+            <!-- İstifadəçilər -->
             <div class="card-custom">
                 <div class="card-custom-header">
-                    <h6><i class="fas fa-user-tie"></i> İstifadəçilər</h6>
+                    <h6><i class="fas fa-users"></i> İstifadəçilər</h6>
                     <button class="btn btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Yeni istifadəçi</button>
                 </div>
                 <div class="card-custom-body">
@@ -55,10 +57,36 @@
                                     <th>Username</th>
                                     <th>Email</th>
                                     <th>Rol</th>
+                                    <th>Əməliyyat</th>
                                 </tr>
                             </thead>
                             <tbody id="users-table">
-                                <tr><td colspan="4" class="text-center text-muted">Yüklənir...</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ofisiantlar & Masa Təyinatı -->
+            <div class="card-custom mt-4">
+                <div class="card-custom-header">
+                    <h6><i class="fas fa-user-tie"></i> Ofisiant Profilləri & Masa Təyinatı</h6>
+                </div>
+                <div class="card-custom-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Ofisiant</th>
+                                    <th>Telefon</th>
+                                    <th>Status</th>
+                                    <th>Təyin olunmuş masalar</th>
+                                    <th>Əməliyyat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="waiters-table">
+                                <tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -110,26 +138,61 @@
         </div>
     </div>
 
+    <!-- Assign Table Modal -->
+    <div class="modal fade" id="assignModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignModalTitle">Masa təyin et</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="assignWaiterId">
+                    <div class="mb-3">
+                        <label class="form-label">Masa seçin *</label>
+                        <select class="form-select" id="assignTableId">
+                            <option value="">-- Masa seçin --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ləğv et</button>
+                    <button type="button" class="btn btn-add" onclick="assignTable()"><i class="fas fa-link"></i> Təyin et</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/admin-common.js"></script>
     <script>
         checkAuth();
-        var modal = null;
+        var userModal = null, assignModal = null;
+        var allUsers = [], allWaiters = [], allTables = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            modal = new bootstrap.Modal(document.getElementById('userModal'));
-            loadUsers();
+            userModal = new bootstrap.Modal(document.getElementById('userModal'));
+            assignModal = new bootstrap.Modal(document.getElementById('assignModal'));
+            loadAll();
         });
 
+        async function loadAll() {
+            await Promise.all([loadUsers(), loadWaiters(), loadTables()]);
+        }
+
+        // ==================== İSTİFADƏÇİLƏR ====================
         async function loadUsers() {
             var data = await authFetch('/Auth/users');
             var tbody = document.getElementById('users-table');
 
             if (!data || !data.success || !data.data || data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">İstifadəçi yoxdur</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">İstifadəçi yoxdur</td></tr>';
                 return;
             }
 
+            allUsers = data.data;
             var html = '';
             data.data.forEach(function(user) {
                 var roleBadge = '';
@@ -140,12 +203,23 @@
                     case 'Cashier': roleBadge = '<span class="badge bg-info">Kassir</span>'; break;
                     default: roleBadge = '<span class="badge bg-secondary">' + user.role + '</span>';
                 }
+                var actions = '';
+                if (user.role === 'Waiter') {
+                    var hasProfile = allWaiters.find(function (w) { return w.appUserId === user.id; });
+                    if (hasProfile) {
+                        actions = '<span class="badge bg-success"><i class="fas fa-check"></i> Aktiv</span>';
+                    } else {
+                        actions = '<button class="btn btn-sm btn-outline-warning" onclick="createWaiterProfileAuto(\'' + user.id + '\', \'' + (user.fullName || user.userName) + '\')"><i class="fas fa-sync"></i> Profil yarat</button>';
+                    }
+                }
+
 
                 html += '<tr>' +
                     '<td><strong>' + (user.fullName || user.userName) + '</strong></td>' +
                     '<td>' + user.userName + '</td>' +
                     '<td>' + (user.email || '-') + '</td>' +
                     '<td>' + roleBadge + '</td>' +
+                    '<td>' + actions + '</td>' +
                     '</tr>';
             });
             tbody.innerHTML = html;
@@ -157,7 +231,7 @@
             document.getElementById('userEmail').value = '';
             document.getElementById('userPassword').value = '';
             document.getElementById('userRole').selectedIndex = 0;
-            modal.show();
+            userModal.show();
         }
 
         async function createUser() {
@@ -186,10 +260,122 @@
 
             if (result && result.success) {
                 showToast('İstifadəçi yaradıldı', 'success');
-                modal.hide();
-                loadUsers();
+                userModal.hide();
+
+                // Eger Waiter rolundadirsa avtomatik profil yarat
+                if (role === 'Waiter' && result.data && result.data.userId) {
+                    await createWaiterProfileAuto(result.data.userId, fullName);
+                }
+
+                loadAll();
             } else {
                 showToast(result ? result.message || 'Xəta baş verdi' : 'Server xətası', 'error');
+            }
+        }
+
+        // ==================== OFİSİANT PROFİLLƏRİ ====================
+        async function loadWaiters() {
+            var data = await authFetch('/Waiters');
+            var tbody = document.getElementById('waiters-table');
+
+            if (!data || !data.success || !data.data || data.data.length === 0) {
+                allWaiters = [];
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Ofisiant profili yoxdur. İstifadəçi yaradıb profil yaradın.</td></tr>';
+                return;
+            }
+
+            allWaiters = data.data;
+            var html = '';
+            data.data.forEach(function(waiter) {
+                var statusBadge = waiter.isActive !== false
+                    ? '<span class="badge bg-success">Aktiv</span>'
+                    : '<span class="badge bg-secondary">Deaktiv</span>';
+
+                // Teyin olunmus masalari goster
+                var assignedTables = '';
+                if (waiter.waiterTables && waiter.waiterTables.length > 0) {
+                    waiter.waiterTables.forEach(function(wt) {
+                        if (wt.isActive) {
+                            var tName = wt.tableName || wt.table ? (wt.table ? wt.table.name : '') : '';
+                            if (!tName && allTables.length > 0) {
+                                var found = allTables.find(function(t) { return t.id === wt.tableId; });
+                                if (found) tName = found.name;
+                            }
+                            assignedTables += '<span class="badge bg-light text-dark me-1">' + (tName || 'Masa') + '</span>';
+                        }
+                    });
+                }
+                if (!assignedTables) assignedTables = '<span class="text-muted">Təyin olunmayıb</span>';
+
+                html += '<tr>' +
+                    '<td><strong>' + waiter.fullName + '</strong></td>' +
+                    '<td>' + (waiter.phone || '-') + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td>' + assignedTables + '</td>' +
+                    '<td>' +
+                    '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignModal(\'' + waiter.id + '\', \'' + waiter.fullName + '\')"><i class="fas fa-chair"></i> Masa təyin et</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function loadTables() {
+            var data = await authFetch('/Tables');
+            if (data && data.success && data.data) {
+                allTables = data.data;
+            }
+        }
+
+    
+
+        async function createWaiterProfileAuto(userId, fullName) {
+            var formData = new FormData();
+            formData.append('fullName', fullName);
+            formData.append('phone', '-');
+            formData.append('appUserId', userId);
+
+            try {
+                var token = sessionStorage.getItem('token');
+                await fetch('/api/Waiters', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body: formData
+                });
+            } catch(e) {}
+        }
+
+        // Masa teyin etme modal
+        function openAssignModal(waiterId, waiterName) {
+            document.getElementById('assignWaiterId').value = waiterId;
+            document.getElementById('assignModalTitle').textContent = waiterName + ' - Masa təyin et';
+
+            var select = document.getElementById('assignTableId');
+            select.innerHTML = '<option value="">-- Masa seçin --</option>';
+            allTables.forEach(function(table) {
+                select.innerHTML += '<option value="' + table.id + '">' + table.name + ' (' + table.capacity + ' nəfər)</option>';
+            });
+
+            assignModal.show();
+        }
+
+        async function assignTable() {
+            var waiterId = document.getElementById('assignWaiterId').value;
+            var tableId = document.getElementById('assignTableId').value;
+
+            if (!tableId) { showToast('Masa seçin', 'error'); return; }
+
+            var result = await authFetch('/Waiters/assign', {
+                method: 'POST',
+                body: JSON.stringify({ waiterId: waiterId, tableId: tableId })
+            });
+
+            if (result && result.success) {
+                showToast('Masa təyin edildi', 'success');
+                assignModal.hide();
+                loadAll();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
             }
         }
     </script>

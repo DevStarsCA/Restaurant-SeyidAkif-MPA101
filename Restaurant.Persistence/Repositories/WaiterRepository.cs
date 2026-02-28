@@ -17,6 +17,11 @@ public class WaiterRepository : GenericRepository<Waiter>, IWaiterRepository
             .FirstOrDefaultAsync(x => x.Id == waiterId);
     }
 
+    public async Task AssignTableAsync(Guid waiterId, Guid tableId)
+    {
+        var wt = new WaiterTable { WaiterId = waiterId, TableId = tableId, IsActive = true, AssignedAt = DateTime.UtcNow };
+        await _context.Set<WaiterTable>().AddAsync(wt);
+    }
     public async Task<Waiter?> GetWaiterByUserIdAsync(string userId)
     {
         return await _dbSet.FirstOrDefaultAsync(x => x.AppUserId == userId);

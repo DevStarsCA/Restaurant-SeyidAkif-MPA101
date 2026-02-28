@@ -8,6 +8,7 @@ using Restaurant.Application.DTOs.ProductDtos;
 using Restaurant.Application.DTOs.ReservationDtos;
 using Restaurant.Application.DTOs.TableDTOs;
 using Restaurant.Application.DTOs.WaiterDtos;
+using Restaurant.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,10 +51,12 @@ public class MappingProfile : Profile
         CreateMap<Domain.Entities.Payment, PaymentDto>()
             .ForMember(d => d.OrderNumber, opt => opt.MapFrom(s => s.Order.OrderNumber));
 
-        CreateMap<Domain.Entities.Waiter, WaiterDto>()
-            .ForMember(d => d.AssignedTables, opt => opt.MapFrom(s =>
-                s.WaiterTables.Where(wt => wt.IsActive).Select(wt => wt.Table.Name).ToList()));
+        CreateMap<Domain.Entities.Waiter, WaiterDto>();
+        CreateMap<WaiterTable, WaiterTableDto>()
+            .ForMember(d => d.TableName, opt => opt.MapFrom(s => s.Table != null ? s.Table.Name : ""));
 
+        CreateMap<WaiterTable, WaiterTableDto>()
+    .ForMember(d => d.TableName, opt => opt.MapFrom(s => s.Table != null ? s.Table.Name : ""));
         CreateMap<Domain.Entities.ChatMessage, ChatMessageDto>()
             .ForMember(d => d.TableName, opt => opt.MapFrom(s => s.Table.Name));
 
