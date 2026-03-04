@@ -39,6 +39,15 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("users/{userId}")]
+    public async Task<IActionResult> DeleteUser(string userId)
+    {
+        var result = await _authService.DeleteUserAsync(userId);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
     {

@@ -5,6 +5,7 @@ using Restaurant.Application.Common;
 using Restaurant.Application.DTOs.AuthDtos;
 using Restaurant.Application.Interfaces;
 using Restaurant.Domain.Entities;
+using Restaurant.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,7 +14,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-
 namespace Restaurant.Infrastructure.Services
 {
     public class AuthService : IAuthService
@@ -21,12 +21,14 @@ namespace Restaurant.Infrastructure.Services
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<AppRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AuthService(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, IConfiguration configuration)
+        public AuthService(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager, IConfiguration configuration, IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ApiResponse<AuthResponseDto>> LoginAsync(LoginDto dto)
@@ -101,6 +103,26 @@ namespace Restaurant.Infrastructure.Services
                 FullName = user.FullName,
                 Role = roles.FirstOrDefault() ?? ""
             }, "Qeydiyyat uğurlu.");
+        }
+
+        public async Task<ApiResponse<bool>> DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return ApiResponse<bool>.FailResponse("İstifadəçi tapılmadı.");
+
+            // Waiter profili varsa sil
+            var waiter = await _unitOfWork.Waiters.GetWaiterByUserIdAsync(userId);
+            if (waiter != null)
+            {
+                _unitOfWork.Waiters.SoftDelete(waiter);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+                return ApiResponse<bool>.FailResponse(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            return ApiResponse<bool>.SuccessResponse(true, "İstifadəçi silindi.");
         }
 
         public async Task<ApiResponse<AuthResponseDto>> RefreshTokenAsync(RefreshTokenDto dto)

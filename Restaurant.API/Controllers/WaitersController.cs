@@ -58,4 +58,13 @@ public class WaitersController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("unassign")]
+    public async Task<IActionResult> UnassignFromTable([FromBody] AssignWaiterToTableDto dto)
+    {
+        var result = await _waiterService.UnassignFromTableAsync(dto);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
 }

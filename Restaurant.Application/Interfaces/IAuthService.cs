@@ -9,4 +9,5 @@ public interface IAuthService
     Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterDto dto);
     Task<ApiResponse<AuthResponseDto>> RefreshTokenAsync(RefreshTokenDto dto);
     Task<ApiResponse<List<UserDto>>> GetAllUsersAsync();
+    Task<ApiResponse<bool>> DeleteUserAsync(string userId);
 }

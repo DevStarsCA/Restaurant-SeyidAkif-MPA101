@@ -207,11 +207,12 @@
                 if (user.role === 'Waiter') {
                     var hasProfile = allWaiters.find(function (w) { return w.appUserId === user.id; });
                     if (hasProfile) {
-                        actions = '<span class="badge bg-success"><i class="fas fa-check"></i> Aktiv</span>';
+                        actions = '<span class="badge bg-success me-1"><i class="fas fa-check"></i> Aktiv</span>';
                     } else {
-                        actions = '<button class="btn btn-sm btn-outline-warning" onclick="createWaiterProfileAuto(\'' + user.id + '\', \'' + (user.fullName || user.userName) + '\')"><i class="fas fa-sync"></i> Profil yarat</button>';
+                        actions = '<button class="btn btn-sm btn-outline-warning me-1" onclick="createWaiterProfileAuto(\'' + user.id + '\', \'' + (user.fullName || user.userName) + '\')"><i class="fas fa-sync"></i> Profil yarat</button>';
                     }
                 }
+                actions += '<button class="btn btn-sm btn-outline-danger" onclick="deleteUser(\'' + user.id + '\', \'' + (user.fullName || user.userName) + '\')"><i class="fas fa-trash"></i></button>';
 
 
                 html += '<tr>' +
@@ -301,7 +302,7 @@
                                 var found = allTables.find(function(t) { return t.id === wt.tableId; });
                                 if (found) tName = found.name;
                             }
-                            assignedTables += '<span class="badge bg-light text-dark me-1">' + (tName || 'Masa') + '</span>';
+                            assignedTables += '<span class="badge bg-light text-dark me-1">' + (tName || 'Masa') + ' <i class="fas fa-times text-danger" style="cursor:pointer;" onclick="unassignTable(\'' + waiter.id + '\', \'' + wt.tableId + '\')"></i></span>';
                         }
                     });
                 }
@@ -373,6 +374,35 @@
             if (result && result.success) {
                 showToast('Masa təyin edildi', 'success');
                 assignModal.hide();
+                loadAll();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+            }
+        }
+
+        async function deleteUser(userId, name) {
+            if (!confirm(name + ' istifadəçisini silmək istəyirsiniz?')) return;
+
+            var result = await authFetch('/Auth/users/' + userId, { method: 'DELETE' });
+
+            if (result && result.success) {
+                showToast('İstifadəçi silindi', 'success');
+                loadAll();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+            }
+        }
+
+        async function unassignTable(waiterId, tableId) {
+            if (!confirm('Bu masanı ofisiantdan çıxarmaq istəyirsiniz?')) return;
+
+            var result = await authFetch('/Waiters/unassign', {
+                method: 'POST',
+                body: JSON.stringify({ waiterId: waiterId, tableId: tableId })
+            });
+
+            if (result && result.success) {
+                showToast('Masa çıxarıldı', 'success');
                 loadAll();
             } else {
                 showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');

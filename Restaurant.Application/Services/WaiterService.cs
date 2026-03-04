@@ -97,4 +97,18 @@ public class WaiterService : IWaiterService
 
         return ApiResponse<bool>.SuccessResponse(true, $"{waiter.FullName} → {table.Name} təyin edildi.");
     }
+
+    public async Task<ApiResponse<bool>> UnassignFromTableAsync(AssignWaiterToTableDto dto)
+    {
+        var waiter = await _unitOfWork.Waiters.GetWaiterWithTablesAsync(dto.WaiterId);
+        if (waiter == null) return ApiResponse<bool>.FailResponse("Ofisiant tapılmadı.");
+
+        var wt = waiter.WaiterTables.FirstOrDefault(x => x.TableId == dto.TableId && x.IsActive);
+        if (wt == null) return ApiResponse<bool>.FailResponse("Bu masa təyin olunmayıb.");
+
+        wt.IsActive = false;
+        await _unitOfWork.SaveChangesAsync();
+
+        return ApiResponse<bool>.SuccessResponse(true, "Masa çıxarıldı.");
+    }
 }

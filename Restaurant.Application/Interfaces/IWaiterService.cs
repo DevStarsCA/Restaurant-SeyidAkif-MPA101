@@ -11,4 +11,5 @@ public interface IWaiterService
     Task<ApiResponse<WaiterDto>> CreateAsync(CreateWaiterDto dto, IFormFile? image);
     Task<ApiResponse<WaiterDto>> UpdateAsync(UpdateWaiterDto dto);
     Task<ApiResponse<bool>> AssignToTableAsync(AssignWaiterToTableDto dto);
+    Task<ApiResponse<bool>> UnassignFromTableAsync(AssignWaiterToTableDto dto);
 }

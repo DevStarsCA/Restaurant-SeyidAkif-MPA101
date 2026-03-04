@@ -32,6 +32,7 @@ public class PaymentsController : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpPost("online/{orderId}")]
     public async Task<IActionResult> CreateOnlinePayment(Guid orderId)
     {
