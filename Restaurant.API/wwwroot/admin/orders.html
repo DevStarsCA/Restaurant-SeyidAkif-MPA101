@@ -146,8 +146,8 @@
 
             var html = '';
             orders.forEach(function(order) {
-                var itemCount = order.items ? order.items.length : 0;
-                var time = formatDateTime(order.createdDate);
+                var itemCount = order.orderItems ? order.orderItems.length : 0;
+                var time = formatDateTime(order.orderDate);
 
                 html += '<tr>' +
                     '<td><strong>#' + (order.orderNumber || order.id.substring(0, 8)) + '</strong></td>' +
@@ -170,6 +170,7 @@
                     '      <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(\'' + order.id + '\',5)">Ləğv et</a></li>' +
                     '    </ul>' +
                     '  </div>' +
+                    (order.status === 0 ? ' <button class="btn-action btn-delete" onclick="cancelOrder(\'' + order.id + '\')" title="Ləğv et"><i class="fas fa-trash"></i></button>' : '') +
                     '</td>' +
                     '</tr>';
             });
@@ -177,15 +178,15 @@
         }
 
         async function viewOrder(id) {
-            var order = allOrders.find(function(o) { return o.id === id; });
+            var order = allOrders.find(function (o) { return o.id === id; });
             if (!order) return;
 
             document.getElementById('orderModalTitle').textContent = 'Sifariş #' + (order.orderNumber || order.id.substring(0, 8));
 
             var itemsHtml = '';
-            if (order.items && order.items.length > 0) {
+            if (order.orderItems && order.orderItems.length > 0) {
                 itemsHtml = '<table class="table"><thead><tr><th>Məhsul</th><th>Say</th><th>Qiymət</th><th>Cəmi</th></tr></thead><tbody>';
-                order.items.forEach(function(item) {
+                order.orderItems.forEach(function (item) {
                     itemsHtml += '<tr>' +
                         '<td>' + (item.productName || 'Məhsul') + '</td>' +
                         '<td>' + item.quantity + '</td>' +
@@ -202,7 +203,7 @@
                 '  <div class="col-md-6"><strong>Status:</strong> ' + getOrderStatusBadge(order.status) + '</div>' +
                 '</div>' +
                 '<div class="row mb-3">' +
-                '  <div class="col-md-6"><strong>Tarix:</strong> ' + formatDateTime(order.createdDate) + '</div>' +
+                '  <div class="col-md-6"><strong>Tarix:</strong> ' + formatDateTime(order.orderDate) + '</div>' +
                 '  <div class="col-md-6"><strong>Cəmi:</strong> <span class="text-success fw-bold">₼' + (order.totalAmount || 0).toFixed(2) + '</span></div>' +
                 '</div>' +
                 '<hr>' +
@@ -213,13 +214,26 @@
         }
 
         async function updateStatus(orderId, newStatus) {
-            var result = await authFetch('/Orders/' + orderId + '/status', {
+            var result = await authFetch('/Orders/status', {
                 method: 'PUT',
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({ orderId: orderId, status: newStatus })
             });
 
             if (result && result.success) {
                 showToast('Status yeniləndi', 'success');
+                loadOrders();
+            } else {
+                showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('Sifarişi ləğv etmək istəyirsiniz?')) return;
+
+            var result = await authFetch('/Orders/' + orderId, { method: 'DELETE' });
+
+            if (result && result.success) {
+                showToast('Sifariş ləğv edildi', 'success');
                 loadOrders();
             } else {
                 showToast(result ? result.message || 'Xəta' : 'Server xətası', 'error');
