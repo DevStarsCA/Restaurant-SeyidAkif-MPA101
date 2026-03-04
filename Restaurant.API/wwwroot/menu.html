@@ -200,12 +200,28 @@
                 $('#nav-res-btn').hide();
                 $('#order-bar').css('display', 'flex');
                 fetchTableInfo();
-                $('nav ul').html('<li><a href="index.html?tableId='+tableId+'">Ana Səhifə</a></li><li class="current-menu-item"><a href="menu.html?tableId='+tableId+'">Menyu</a></li><li><a href="about.html?tableId='+tableId+'">Haqqımızda</a></li><li><a href="contact.html?tableId='+tableId+'">Əlaqə</a></li>');
+                $('nav ul').html('<li><a href="index.html?tableId=' + tableId + '">Ana Səhifə</a></li><li class="current-menu-item"><a href="menu.html?tableId=' + tableId + '">Menyu</a></li><li><a href="about.html?tableId=' + tableId + '">Haqqımızda</a></li><li><a href="contact.html?tableId=' + tableId + '">Əlaqə</a></li>');
             } else { $('.tst-res-btn').show(); }
             loadMenu(); updateCartUI();
-            $(document).on('click', '.tst-filter-btn', function () { $('.tst-filter-btn').removeClass('active'); $(this).addClass('active'); var cat = $(this).data('category'); if (cat === 'all') { $('.tst-menu-card-wrapper').removeClass('hidden'); } else { $('.tst-menu-card-wrapper').addClass('hidden'); $('.tst-menu-card-wrapper[data-category="'+cat+'"]').removeClass('hidden'); } });
+            $(document).on('click', '.tst-filter-btn', function () { $('.tst-filter-btn').removeClass('active'); $(this).addClass('active'); var cat = $(this).data('category'); if (cat === 'all') { $('.tst-menu-card-wrapper').removeClass('hidden'); } else { $('.tst-menu-card-wrapper').addClass('hidden'); $('.tst-menu-card-wrapper[data-category="' + cat + '"]').removeClass('hidden'); } });
             $(document).on('click', '.tst-add-to-cart', function () { var productId = $(this).data('id'); var name = $(this).data('name'); var price = parseFloat($(this).data('price')); var image = $(this).data('image'); addToCart(productId, name, price, image); $(this).addClass('tst-added'); var btn = $(this); setTimeout(function () { btn.removeClass('tst-added'); }, 500); });
             $(document).on('click', '.remove-cart-item', function () { removeFromCart($(this).data('id')); });
+            $(document).on('click', '.cart-qty-btn', function () {
+                var productId = $(this).data('id');
+                var action = $(this).data('action');
+                var item = cart.find(function (i) { return i.productId === productId; });
+                if (!item) return;
+                if (action === 'plus') {
+                    item.quantity++;
+                } else if (action === 'minus') {
+                    item.quantity--;
+                    if (item.quantity <= 0) {
+                        cart = cart.filter(function (i) { return i.productId !== productId; });
+                    }
+                }
+                saveCart();
+                updateCartUI();
+            });
             $('#btn-checkout, #btn-order-bar').on('click', function () { submitOrder(); });
             $('.tst-res-btn').on('click', function () { $('.tst-popup-bg').toggleClass('tst-active'); });
             $('.tst-close-popup').on('click', function () { $('.tst-popup-bg').removeClass('tst-active'); });
@@ -240,13 +256,32 @@
         function saveCart() { sessionStorage.setItem('cart', JSON.stringify(cart)); }
 
         function updateCartUI() {
-            var totalItems = cart.reduce(function(sum,item){return sum+item.quantity;},0);
-            var totalPrice = cart.reduce(function(sum,item){return sum+(item.price*item.quantity);},0);
+            var totalItems = cart.reduce(function (sum, item) { return sum + item.quantity; }, 0);
+            var totalPrice = cart.reduce(function (sum, item) { return sum + (item.price * item.quantity); }, 0);
             $('#cart-count').text(totalItems); $('#order-bar-count').text(totalItems);
-            var totalText = '&#8380;'+totalPrice.toFixed(2); $('#minicart-total').html(totalText); $('#order-bar-total').html(totalText);
+            var totalText = '&#8380;' + totalPrice.toFixed(2); $('#minicart-total').html(totalText); $('#order-bar-total').html(totalText);
             var minicartItems = $('#minicart-items'); minicartItems.empty();
-            cart.forEach(function(item) { minicartItems.append('<li class="woocommerce-mini-cart-item mini_cart_item"><a href="#." class="remove remove_from_cart_button remove-cart-item" data-id="'+item.productId+'">&times;</a><a href="#."><img src="'+item.image+'" class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail" alt="'+item.name+'"> '+item.name+'</a><span class="quantity">'+item.quantity+' &times; <span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol">&#8380;</span>'+item.price.toFixed(2)+'</bdi></span></span></li>'); });
+            cart.forEach(function (item) {
+                minicartItems.append(
+                    '<li class="woocommerce-mini-cart-item mini_cart_item" style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">' +
+                    '  <div style="display:flex;align-items:center;gap:10px;flex:1;">' +
+                    '    <img src="' + item.image + '" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" alt="' + item.name + '">' +
+                    '    <div>' +
+                    '      <div style="font-weight:600;font-size:14px;">' + item.name + '</div>' +
+                    '      <div style="color:#c8a97e;font-size:13px;">&#8380;' + item.price.toFixed(2) + '</div>' +
+                    '    </div>' +
+                    '  </div>' +
+                    '  <div style="display:flex;align-items:center;gap:8px;">' +
+                    '    <button class="cart-qty-btn" data-id="' + item.productId + '" data-action="minus" style="width:28px;height:28px;border-radius:50%;border:1px solid #e0e0e0;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">−</button>' +
+                    '    <span style="font-weight:700;min-width:20px;text-align:center;">' + item.quantity + '</span>' +
+                    '    <button class="cart-qty-btn" data-id="' + item.productId + '" data-action="plus" style="width:28px;height:28px;border-radius:50%;border:1px solid #c8a97e;background:#c8a97e;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">+</button>' +
+                    '    <button class="remove-cart-item" data-id="' + item.productId + '" style="width:28px;height:28px;border-radius:50%;border:1px solid #e74c3c;background:#fff;color:#e74c3c;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-left:5px;">✕</button>' +
+                    '  </div>' +
+                    '</li>'
+                );
+            });
             if (isInRestaurant && totalItems > 0) { $('#order-bar').css('display', 'flex'); }
+            if (totalItems === 0) { $('#order-bar').hide(); }
         }
 
         async function submitOrder() {

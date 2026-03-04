@@ -116,10 +116,12 @@ public class OrderService : IOrderService
             (OrderStatus.Pending, OrderStatus.Preparing) => true,
             (OrderStatus.Preparing, OrderStatus.Ready) => true,
             (OrderStatus.Ready, OrderStatus.Delivered) => true,
+            (OrderStatus.Delivered, OrderStatus.Completed) => true,
             (OrderStatus.Pending, OrderStatus.Cancelled) => true,
             (OrderStatus.Preparing, OrderStatus.Cancelled) => true,
             _ => false
         };
+
 
         if (!validTransition)
             return ApiResponse<OrderDto>.FailResponse($"'{order.Status}' statusundan '{dto.Status}' statusuna keçid mümkün deyil.");
