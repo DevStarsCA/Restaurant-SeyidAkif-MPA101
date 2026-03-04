@@ -20,6 +20,14 @@ public class ReservationRepository : GenericRepository<Reservation>, IReservatio
             .ToListAsync();
     }
 
+    public new async Task<IReadOnlyList<Reservation>> GetAllAsync()
+    {
+        return await _dbSet
+            .Include(x => x.Table)
+            .OrderByDescending(x => x.ReservationDate)
+            .AsNoTracking()
+            .ToListAsync();
+    }
     public async Task<IReadOnlyList<Reservation>> GetReservationsByTableAsync(Guid tableId)
     {
         return await _dbSet

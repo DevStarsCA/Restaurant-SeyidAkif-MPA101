@@ -18,6 +18,13 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .ToListAsync();
     }
 
+    public new async Task<IReadOnlyList<Product>> GetAllAsync()
+    {
+        return await _dbSet
+            .Include(x => x.Category)
+            .AsNoTracking()
+            .ToListAsync();
+    }
     public async Task<IReadOnlyList<Product>> GetAvailableProductsAsync()
     {
         return await _dbSet

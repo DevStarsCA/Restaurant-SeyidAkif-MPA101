@@ -17,4 +17,12 @@ public class CategoryRepository : GenericRepository<Category>, ICategoryReposito
             .AsNoTracking()
             .ToListAsync();
     }
+    public new async Task<IReadOnlyList<Category>> GetAllAsync()
+    {
+        return await _dbSet
+            .Include(x => x.Products)
+            .OrderBy(x => x.DisplayOrder)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

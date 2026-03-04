@@ -25,8 +25,6 @@ public class OrderService : IOrderService
         return ApiResponse<List<OrderDto>>.SuccessResponse(_mapper.Map<List<OrderDto>>(orders));
     }
 
-
-
     public async Task<ApiResponse<OrderDto>> GetByIdAsync(Guid id)
     {
         var order = await _unitOfWork.Orders.GetOrderWithDetailsAsync(id);
