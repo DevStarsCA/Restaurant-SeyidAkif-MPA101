@@ -12,4 +12,5 @@ public interface IOrderService
     Task<ApiResponse<List<CashierTableSummaryDto>>> GetCashierSummaryAsync();
     Task<ApiResponse<OrderDto>> CreateAsync(CreateOrderDto dto);
     Task<ApiResponse<OrderDto>> UpdateStatusAsync(UpdateOrderStatusDto dto);
+    Task<ApiResponse<bool>> CancelOrderAsync(Guid orderId);
 }

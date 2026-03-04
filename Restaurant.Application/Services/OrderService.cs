@@ -132,4 +132,31 @@ public class OrderService : IOrderService
 
         return ApiResponse<OrderDto>.SuccessResponse(_mapper.Map<OrderDto>(order), "Status yeniləndi.");
     }
+    public async Task<ApiResponse<bool>> CancelOrderAsync(Guid orderId)
+    {
+        var order = await _unitOfWork.Orders.GetOrderWithDetailsAsync(orderId);
+        if (order == null) return ApiResponse<bool>.FailResponse("Sifariş tapılmadı.");
+
+        if (order.Status != OrderStatus.Pending)
+            return ApiResponse<bool>.FailResponse("Yalnız gözləyən sifarişlər ləğv edilə bilər.");
+
+        order.Status = OrderStatus.Cancelled;
+        _unitOfWork.Orders.Update(order);
+        await _unitOfWork.SaveChangesAsync();
+
+        await CheckAndFreeTableAsync(order.TableId);
+        await _unitOfWork.SaveChangesAsync();
+
+        return ApiResponse<bool>.SuccessResponse(true, "Sifariş ləğv edildi.");
+    }
+
+    private async Task CheckAndFreeTableAsync(Guid tableId)
+    {
+        var unpaidOrders = await _unitOfWork.Orders.GetUnpaidOrdersByTableAsync(tableId);
+        if (!unpaidOrders.Any())
+        {
+            var table = await _unitOfWork.Tables.GetByIdAsync(tableId);
+            if (table != null) table.Status = TableStatus.Available;
+        }
+    }
 }

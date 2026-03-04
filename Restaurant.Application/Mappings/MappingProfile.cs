@@ -52,11 +52,10 @@ public class MappingProfile : Profile
             .ForMember(d => d.OrderNumber, opt => opt.MapFrom(s => s.Order.OrderNumber));
 
         CreateMap<Domain.Entities.Waiter, WaiterDto>();
+
         CreateMap<WaiterTable, WaiterTableDto>()
             .ForMember(d => d.TableName, opt => opt.MapFrom(s => s.Table != null ? s.Table.Name : ""));
 
-        CreateMap<WaiterTable, WaiterTableDto>()
-    .ForMember(d => d.TableName, opt => opt.MapFrom(s => s.Table != null ? s.Table.Name : ""));
         CreateMap<Domain.Entities.ChatMessage, ChatMessageDto>()
             .ForMember(d => d.TableName, opt => opt.MapFrom(s => s.Table.Name));
 
