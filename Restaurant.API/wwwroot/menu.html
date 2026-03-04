@@ -285,16 +285,15 @@
         }
 
         async function submitOrder() {
-            if (cart.length===0){alert('Səbətiniz boşdur!');return;} if(!tableId){alert('Masa tapılmadı.');return;}
+            if (cart.length === 0) { alert('Səbətiniz boşdur!'); return; } if (!tableId) { alert('Masa tapılmadı.'); return; }
             try {
-                for(var i=0;i<cart.length;i++){await fetch(API_BASE+'/Basket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tableId:tableId,productId:cart[i].productId,quantity:cart[i].quantity})});}
-                var orderRes=await fetch(API_BASE+'/Orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tableId:tableId})}); var orderData=await orderRes.json();
-                if(orderData.success){cart=[];saveCart();updateCartUI();$('.tst-minicart-window').removeClass('tst-active');
-                    var payChoice=confirm('Sifarişiniz qəbul edildi! #'+orderData.data.orderNumber+'\n\nOnline ödəmək istəyirsiniz?');
-                    if(payChoice){try{var payRes=await fetch(API_BASE+'/Payments/online/'+orderData.data.id,{method:'POST',headers:{'Content-Type':'application/json'}});var payData=await payRes.json();if(payData.success&&payData.data&&payData.data.hppUrl){window.location.href=payData.data.hppUrl;return;}else{alert('Online odenis mumkun deyil. Masada odeyeceksiniz.');}}catch(e){alert('Odenis xetasi.');}}
-                    window.location.href='order-status.html?orderId='+orderData.data.id+'&tableId='+tableId;
-                }else{alert(orderData.message||'Xəta baş verdi.');}
-            } catch(err){console.error(err);alert('Server xətası.');}
+                for (var i = 0; i < cart.length; i++) { await fetch(API_BASE + '/Basket', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tableId: tableId, productId: cart[i].productId, quantity: cart[i].quantity }) }); }
+                var orderRes = await fetch(API_BASE + '/Orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tableId: tableId }) }); var orderData = await orderRes.json();
+                if (orderData.success) {
+                    cart = []; saveCart(); updateCartUI(); $('.tst-minicart-window').removeClass('tst-active');
+                    window.location.href = 'order-status.html?orderId=' + orderData.data.id + '&tableId=' + tableId;
+                } else { alert(orderData.message || 'Xəta baş verdi.'); }
+            } catch (err) { console.error(err); alert('Server xətası.'); }
         }
 
         // Rezervasiya

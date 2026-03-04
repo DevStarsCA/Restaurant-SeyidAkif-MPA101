@@ -12,8 +12,8 @@ using Restaurant.Persistence.Context;
 namespace Restaurant.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260217164142_addddd")]
-    partial class addddd
+    [Migration("20260304122115_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
