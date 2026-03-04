@@ -145,7 +145,7 @@
         // Sifarişləri yüklə
         async function loadOrders() {
             try {
-                var response = await fetch(API_BASE + '/Orders', {
+                var response = await fetch(API_BASE + '/Orders/kitchen', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 var data = await response.json();
@@ -158,7 +158,7 @@
                     }
                     previousOrderCount = pendingCount;
 
-                    allOrders = data.data.filter(function (o) { return o.status <= 2; });
+                    allOrders = data.data;
                     updateCounts();
                     filterOrders(currentFilter);
                 }
@@ -196,12 +196,13 @@
 
             var html = '';
             orders.forEach(function (order) {
-                var elapsed = getElapsed(order.createdAt);
+                var elapsed = getElapsed(order.orderDate || order.createdAt);
                 var elapsedClass = elapsed.minutes < 10 ? 'normal' : elapsed.minutes < 20 ? 'warning' : 'danger';
 
                 var itemsHtml = '';
-                if (order.items && order.items.length > 0) {
-                    order.items.forEach(function (item) {
+                var items = order.orderItems || order.items || [];
+                if (items.length > 0) {
+                    items.forEach(function (item) {
                         itemsHtml += '<div class="order-item">' +
                             '<span class="item-name">' + (item.productName || 'Məhsul') + '</span>' +
                             '<span class="item-qty">x' + item.quantity + '</span>' +
@@ -217,7 +218,7 @@
                 }
 
                 var orderNum = order.orderNumber || order.id.substring(0, 8);
-                var time = new Date(order.createdAt).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
+                var time = new Date(order.orderDate || order.createdAt).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
 
                 html += '<div class="order-card">' +
                     '<div class="order-card-header">' +
@@ -323,6 +324,24 @@
         kitchenChatConnection.start().then(function () {
             kitchenChatConnection.invoke("JoinTableChat", "kitchen");
         }).catch(function (err) { console.log("ChatHub error:", err); });
+
+        // Elapsed vaxti her saniye yenile
+        setInterval(function () {
+            if (allOrders.length > 0) {
+                var filtered = allOrders.filter(function (o) { return o.status === currentFilter; });
+                document.querySelectorAll('.order-card').forEach(function (card, index) {
+                    if (filtered[index]) {
+                        var elapsed = getElapsed(filtered[index].orderDate || filtered[index].createdAt);
+                        var elapsedClass = elapsed.minutes < 10 ? 'normal' : elapsed.minutes < 20 ? 'warning' : 'danger';
+                        var elSpan = card.querySelector('.elapsed');
+                        if (elSpan) {
+                            elSpan.textContent = elapsed.text;
+                            elSpan.className = 'elapsed ' + elapsedClass;
+                        }
+                    }
+                });
+            }
+        }, 1000);
     </script>
 </body>
 </html>
