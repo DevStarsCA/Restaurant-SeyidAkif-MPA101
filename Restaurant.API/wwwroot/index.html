@@ -62,8 +62,22 @@
                                     <strong>Cəmi:</strong> <span class="woocommerce-Price-amount amount" id="minicart-total"><bdi><span class="woocommerce-Price-currencySymbol">₼</span>0.00</bdi></span>
                                 </p>
                                 <p class="woocommerce-mini-cart__buttons buttons">
-                                    <a href="cart.html" class="button checkout wc-forward">Sifariş ver</a>
+                                    <a href="#." class="button checkout wc-forward" id="btn-checkout">Sifariş ver</a>
                                 </p>
+                            </div>
+                        </div>
+                        <!-- Hesab -->
+                        <div class="tst-minicart" id="bill-container" style="display:none;">
+                            <a href="#." class="tst-cart" id="btn-show-bill">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                <div class="tst-cart-number" id="bill-count" style="background:#e74a3b;">0</div>
+                            </a>
+                            <div class="tst-bill-window" id="bill-window" style="min-width:320px;display:none;position:absolute;right:0;top:100%;background:#fff;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.15);padding:20px;z-index:999;">
+                                <div class="tst-minicart-header"><h5>Hesabiniz</h5></div>
+                                <div id="bill-items" style="max-height:400px;overflow-y:auto;padding:10px 0;"><p style="text-align:center;color:#999;">Yuklanir...</p></div>
+                                <p class="woocommerce-mini-cart__total total"><strong>Cemi:</strong> <span id="bill-total">₼0.00</span></p>
+                                <p class="woocommerce-mini-cart__buttons buttons"><a href="#." class="button checkout wc-forward" id="btn-bill-pay">Onlayn ode</a></p>
+                                <p class="woocommerce-mini-cart__buttons buttons" style="margin-top:5px;"><a href="#." class="button wc-forward" id="btn-bill-cash" style="background:#4CAF50;">Masada ode</a></p>
                             </div>
                         </div>
                         <div class="tst-menu-button-frame">
@@ -470,6 +484,34 @@
         </div>
         <!-- popup end -->
 
+        <!-- Chat -->
+        <div id="chat-float" style="display:none;position:fixed;bottom:80px;right:20px;z-index:998;">
+            <div id="chat-window" style="display:none;width:320px;background:#fff;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.2);overflow:hidden;margin-bottom:10px;">
+                <div style="background:#1a1a2e;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:600;font-size:14px;"><i class="fas fa-comments"></i> Mesaj</span>
+                    <span style="cursor:pointer;font-size:18px;" onclick="$('#chat-window').hide();">&times;</span>
+                </div>
+                <div id="chat-msgs" style="height:300px;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:8px;">
+                    <p style="text-align:center;color:#ccc;margin-top:100px;">Ofisianta mesaj yazin</p>
+                </div>
+                <div style="padding:10px;border-top:1px solid #f0f0f0;display:flex;gap:8px;">
+                    <input type="text" id="chat-msg-input" placeholder="Mesaj yazin..." style="flex:1;padding:8px 15px;border:1px solid #e0e0e0;border-radius:20px;font-size:13px;outline:none;" onkeypress="if(event.key==='Enter')sendChatMsg()">
+                    <button onclick="sendChatMsg()" style="width:36px;height:36px;border-radius:50%;background:#c8a97e;color:#fff;border:none;cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+            <button id="chat-btn" onclick="$('#chat-window').toggle();" style="width:55px;height:55px;border-radius:50%;background:#c8a97e;color:#fff;border:none;cursor:pointer;font-size:22px;box-shadow:0 5px 20px rgba(0,0,0,0.2);position:relative;">
+                <i class="fas fa-comments"></i>
+                <span id="chat-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#e74a3b;color:#fff;width:20px;height:20px;border-radius:50%;font-size:10px;line-height:20px;">0</span>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Sifaris bar -->
+    <div class="tst-order-status-bar" id="order-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:999;background:#1a1a2e;color:#fff;padding:15px 20px;display:none;justify-content:space-between;align-items:center;">
+        <div><span id="order-bar-count">0</span> məhsul seçilib</div>
+        <div style="font-size:16px;font-weight:600;">Cəmi: <span id="order-bar-total">₼0.00</span></div>
+        <button class="tst-btn" id="btn-order-bar">Sifariş ver</button>
     </div>
 
     <script src="js/plugins/jquery.min.js"></script>
@@ -479,26 +521,12 @@
     <script src="js/plugins/datepicker.js"></script>
     <script src="js/plugins/jquery.nice-select.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/customer-common.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
 
-    <!-- API Script -->
     <script>
-        const API_BASE = '/api';
-        const urlParams = new URLSearchParams(window.location.search);
-        const tableId = urlParams.get('tableId');
-
         $(document).ready(function () {
-            if (tableId) {
-                // QR ilə giriş - səbət göstər, rezervasiya gizlə
-                $('#minicart-container').show();
-                $('.tst-res-btn').hide();
-                $('.tst-popup-bg').remove();
-                $('nav ul').html(`
-                    <li><a href="index.html?tableId=${tableId}">Ana Səhifə</a></li>
-                    <li><a href="menu.html?tableId=${tableId}">Menyu</a></li>
-                    <li><a href="about.html?tableId=${tableId}">Haqqımızda</a></li>
-                    <li><a href="contact.html?tableId=${tableId}">Əlaqə</a></li>
-                `);
-            }
+            initCustomerPage();
 
             // Reservation form submit
             $('#reservation-form').on('submit', async function (e) {
@@ -524,7 +552,6 @@
 
                 try {
                     const guestCount = parseInt(guests);
-
                     const response = await fetch(`${API_BASE}/Reservations`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -535,7 +562,6 @@
                             guestCount: guestCount, note: note || null
                         })
                     });
-
                     const data = await response.json();
                     if (data.success) {
                         showResMessage('Rezervasiya uğurla yaradıldı!', true);
@@ -557,10 +583,7 @@
             textEl.css('color', isSuccess ? '#4CAF50' : '#f44336');
             msgEl.fadeIn();
             if (isSuccess) {
-                setTimeout(() => {
-                    msgEl.fadeOut();
-                    $('.tst-popup-bg').removeClass('tst-active');
-                }, 3000);
+                setTimeout(() => { msgEl.fadeOut(); $('.tst-popup-bg').removeClass('tst-active'); }, 3000);
             }
         }
     </script>

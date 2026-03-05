@@ -378,6 +378,11 @@
                 if (!data.success) { $('#order-number').text('Sifariş tapılmadı'); return; }
 
                 var order = data.data;
+                // Masa yoxlaması - başqa masanın sifarişini görmə
+                if (tableId && order.tableId && order.tableId !== tableId) {
+                    $('#order-number').text('Bu sifariş sizin masanıza aid deyil');
+                    return;
+                }
                 $('#order-number').text('Sifariş #' + order.orderNumber);
                 var status = statusMap[order.status] || statusMap[0];
                 $('#order-status-text').text(status.text);
@@ -470,7 +475,7 @@
 
             try {
                 for (var i = 0; i < orderIds.length; i++) {
-                    await fetch(API_BASE + '/Orders/' + orderIds[i], { method: 'DELETE' });
+                    await fetch(API_BASE + '/Orders/' + orderIds[i] + '?tableId=' + tableId, { method: 'DELETE' });
                 }
                 alert('Sifariş ləğv edildi');
                 loadAllOrders();

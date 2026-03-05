@@ -19,6 +19,7 @@ public class OrdersController : ControllerBase
         _orderService = orderService;
         _orderHub = orderHub;
     }
+    [Authorize(Roles = "Admin,Waiter,Kitchen,Cashier")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -58,8 +59,15 @@ public class OrdersController : ControllerBase
     }
 
     [HttpDelete("{orderId}")]
-    public async Task<IActionResult> CancelOrder(Guid orderId)
+    public async Task<IActionResult> CancelOrder(Guid orderId, [FromQuery] Guid? tableId)
     {
+        // Əgər tableId varsa, sifarişin o masaya aid olduğunu yoxla
+        if (tableId.HasValue)
+        {
+            var order = await _orderService.GetByIdAsync(orderId);
+            if (order.Success && order.Data != null && order.Data.TableId != tableId.Value)
+                return BadRequest(new { success = false, message = "Bu sifariş sizin masanıza aid deyil." });
+        }
         var result = await _orderService.CancelOrderAsync(orderId);
         if (!result.Success) return BadRequest(result);
         return Ok(result);

@@ -10,12 +10,8 @@
 </head>
 <body>
 
-    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-utensils"></i>
-            <span>Restoran Panel</span>
-        </div>
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
         <ul class="sidebar-menu">
             <li class="active"><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
             <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
@@ -24,6 +20,7 @@
             <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
             <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
             <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>İstifadəçilər</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>Hesabat</span></a></li>
             <li class="divider"></li>
             <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
             <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
@@ -33,9 +30,7 @@
         </ul>
     </nav>
 
-    <!-- Main Content -->
     <main class="main-content" id="main-content">
-        <!-- Top Bar -->
         <div class="topbar">
             <div class="topbar-left">
                 <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
@@ -47,8 +42,8 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
         <div class="content-area">
+            <!-- Stat Cards -->
             <div class="row g-4 mb-4">
                 <div class="col-xl-3 col-md-6">
                     <div class="stat-card stat-primary">
@@ -88,8 +83,14 @@
                 </div>
             </div>
 
-            <!-- Recent Orders -->
-            <div class="row g-4">
+            <!-- Top 5 Products + Recent Orders -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-trophy"></i> Ən çox satılan 5 məhsul</h6></div>
+                        <div class="card-custom-body"><div id="top-products"><p class="text-center text-muted">Yüklənir...</p></div></div>
+                    </div>
+                </div>
                 <div class="col-lg-8">
                     <div class="card-custom">
                         <div class="card-custom-header">
@@ -99,44 +100,27 @@
                         <div class="card-custom-body">
                             <div class="table-responsive">
                                 <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Sifariş №</th>
-                                            <th>Masa</th>
-                                            <th>Məbləğ</th>
-                                            <th>Status</th>
-                                            <th>Vaxt</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recent-orders">
-                                        <tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr>
-                                    </tbody>
+                                    <thead><tr><th>Sifariş №</th><th>Masa</th><th>Məbləğ</th><th>Status</th><th>Vaxt</th></tr></thead>
+                                    <tbody id="recent-orders"><tr><td colspan="5" class="text-center text-muted">Yüklənir...</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="card-custom">
-                        <div class="card-custom-header">
-                            <h6><i class="fas fa-calendar-check"></i> Bugünkü rezervasiyalar</h6>
-                        </div>
-                        <div class="card-custom-body">
-                            <div id="today-reservations">
-                                <p class="text-center text-muted">Yüklənir...</p>
-                            </div>
-                        </div>
-                    </div>
+            </div>
 
-                    <div class="card-custom mt-4">
-                        <div class="card-custom-header">
-                            <h6><i class="fas fa-chair"></i> Masa statusları</h6>
-                        </div>
-                        <div class="card-custom-body">
-                            <div id="table-statuses">
-                                <p class="text-center text-muted">Yüklənir...</p>
-                            </div>
-                        </div>
+            <!-- Reservations + Tables -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-calendar-check"></i> Bugünkü rezervasiyalar</h6></div>
+                        <div class="card-custom-body"><div id="today-reservations"><p class="text-center text-muted">Yüklənir...</p></div></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-chair"></i> Masa statusları</h6></div>
+                        <div class="card-custom-body"><div id="table-statuses"><p class="text-center text-muted">Yüklənir...</p></div></div>
                     </div>
                 </div>
             </div>
@@ -147,105 +131,88 @@
     <script src="js/admin-common.js"></script>
     <script>
         checkAuth();
-
-        document.addEventListener("DOMContentLoaded", function () {
-            loadDashboard();
-        });
+        document.addEventListener("DOMContentLoaded", function () { loadDashboard(); });
 
         async function loadDashboard() {
             try {
-                // Sifarişlər
                 var ordersRes = await authFetch('/Orders');
-                if (ordersRes && ordersRes.success && ordersRes.data) {
-                    var today = new Date().toDateString();
-                    var todayOrders = ordersRes.data.filter(function (o) {
-                        return new Date(o.orderDate || o.orderDate).toDateString() === today;
+                var allOrders = (ordersRes && ordersRes.success) ? ordersRes.data : [];
+                var today = new Date().toDateString();
+                var todayOrders = allOrders.filter(function (o) { return new Date(o.orderDate).toDateString() === today; });
+
+                // Stats
+                document.getElementById('stat-orders').textContent = todayOrders.length;
+                var revenue = todayOrders.filter(function (o) { return o.status !== 5; }).reduce(function (s, o) { return s + (o.totalAmount || 0); }, 0);
+                document.getElementById('stat-revenue').textContent = '₼' + revenue.toFixed(2);
+
+                // Top 5 products
+                var map = {};
+                allOrders.forEach(function (o) {
+                    if (o.status === 5) return;
+                    (o.orderItems || []).forEach(function (item) {
+                        var name = item.productName || (item.product ? item.product.name : 'Mehsul');
+                        if (!map[name]) map[name] = { qty: 0, revenue: 0 };
+                        map[name].qty += item.quantity || 1;
+                        map[name].revenue += (item.unitPrice || 0) * (item.quantity || 1);
                     });
-                    document.getElementById('stat-orders').textContent = todayOrders.length;
-
-                    var revenue = todayOrders.reduce(function(sum, o) { return sum + (o.totalAmount || 0); }, 0);
-                    document.getElementById('stat-revenue').textContent = '₼' + revenue.toFixed(2);
-
-                    // Son sifarişlər
-                    var recentBody = document.getElementById('recent-orders');
-                    var recent = ordersRes.data.slice(0, 10);
-                    if (recent.length === 0) {
-                        recentBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sifariş yoxdur</td></tr>';
-                    } else {
-                        var html = '';
-                        recent.forEach(function(order) {
-                            var statusBadge = getStatusBadge(order.status);
-                            var time = new Date(order.orderDate || order.orderDate).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
-                            html += '<tr>' +
-                                '<td><strong>#' + (order.orderNumber || order.id.substring(0,8)) + '</strong></td>' +
-                                '<td>' + (order.tableName || 'Masa') + '</td>' +
-                                '<td>₼' + (order.totalAmount || 0).toFixed(2) + '</td>' +
-                                '<td>' + statusBadge + '</td>' +
-                                '<td>' + time + '</td>' +
-                                '</tr>';
-                        });
-                        recentBody.innerHTML = html;
-                    }
+                });
+                var sorted = Object.keys(map).map(function (n) { return { name: n, qty: map[n].qty, revenue: map[n].revenue }; })
+                    .sort(function (a, b) { return b.qty - a.qty; }).slice(0, 5);
+                var container = document.getElementById('top-products');
+                if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center">Məlumat yoxdur</p>'; }
+                else {
+                    var maxQty = sorted[0].qty; var html = '';
+                    sorted.forEach(function (p, i) {
+                        var pct = Math.round((p.qty / maxQty) * 100);
+                        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+                        html += '<div class="mb-3"><div class="d-flex justify-content-between mb-1"><span><strong>' + medal + '</strong> ' + p.name + '</span><span style="font-size:12px;color:#666;">' + p.qty + ' ədəd · ₼' + p.revenue.toFixed(0) + '</span></div><div class="progress" style="height:6px;"><div class="progress-bar" style="width:' + pct + '%;background:linear-gradient(90deg,#c8a97e,#e2c9a0);"></div></div></div>';
+                    });
+                    container.innerHTML = html;
                 }
 
-                // Masalar
+                // Recent orders
+                var recentBody = document.getElementById('recent-orders');
+                var recent = allOrders.slice(0, 10);
+                if (recent.length === 0) { recentBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sifariş yoxdur</td></tr>'; }
+                else {
+                    var html = '';
+                    recent.forEach(function (o) {
+                        html += '<tr><td><strong>#' + (o.orderNumber || '') + '</strong></td><td>' + (o.tableName || 'Masa') + '</td><td>₼' + (o.totalAmount || 0).toFixed(2) + '</td><td>' + getOrderStatusBadge(o.status) + '</td><td>' + formatDateTime(o.orderDate) + '</td></tr>';
+                    });
+                    recentBody.innerHTML = html;
+                }
+
+                // Tables
                 var tablesRes = await authFetch('/Tables');
                 if (tablesRes && tablesRes.success && tablesRes.data) {
-                    var activeTables = tablesRes.data.filter(function(t) { return t.status === 1; });
-                    document.getElementById('stat-tables').textContent = activeTables.length + '/' + tablesRes.data.length;
-
-                    var tableHtml = '';
-                    tablesRes.data.forEach(function(table) {
-                        var statusClass = table.status === 0 ? 'bg-success' : 'bg-danger';
-                        var statusText = table.status === 0 ? 'Boş' : 'Dolu';
-                        tableHtml += '<div class="d-flex justify-content-between align-items-center mb-2">' +
-                            '<span>' + table.name + '</span>' +
-                            '<span class="badge ' + statusClass + '">' + statusText + '</span>' +
-                            '</div>';
+                    var tables = tablesRes.data;
+                    var active = tables.filter(function (t) { return t.status === 1; });
+                    document.getElementById('stat-tables').textContent = active.length + '/' + tables.length;
+                    var tHtml = '';
+                    tables.forEach(function (t) {
+                        var cls = t.status === 0 ? 'success' : t.status === 1 ? 'danger' : 'warning';
+                        var txt = t.status === 0 ? 'Boş' : t.status === 1 ? 'Dolu' : 'Rezerv';
+                        tHtml += '<div class="d-flex justify-content-between align-items-center mb-2"><span>' + t.name + ' <small class="text-muted">(' + t.capacity + ' nəfər)</small></span><span class="badge bg-' + cls + '">' + txt + '</span></div>';
                     });
-                    document.getElementById('table-statuses').innerHTML = tableHtml || '<p class="text-muted">Masa yoxdur</p>';
+                    document.getElementById('table-statuses').innerHTML = tHtml || '<p class="text-muted">Masa yoxdur</p>';
                 }
 
-                // Rezervasiyalar
+                // Reservations
                 var resRes = await authFetch('/Reservations');
                 if (resRes && resRes.success && resRes.data) {
-                    var today = new Date().toDateString();
-                    var todayRes = resRes.data.filter(function(r) {
-                        return new Date(r.reservationDate).toDateString() === today;
-                    });
+                    var todayRes = resRes.data.filter(function (r) { return new Date(r.reservationDate).toDateString() === today; });
                     document.getElementById('stat-reservations').textContent = todayRes.length;
-
-                    var resHtml = '';
-                    todayRes.forEach(function(res) {
-                        var time = new Date(res.reservationDate).toLocaleTimeString('az', {hour:'2-digit',minute:'2-digit'});
-                        resHtml += '<div class="reservation-item mb-3">' +
-                            '<div class="d-flex justify-content-between">' +
-                            '<strong>' + res.customerName + '</strong>' +
-                            '<span class="badge bg-primary">' + time + '</span>' +
-                            '</div>' +
-                            '<small class="text-muted">' + res.guestCount + ' nəfər | ' + res.customerPhone + '</small>' +
-                            '</div>';
+                    var rHtml = '';
+                    todayRes.forEach(function (r) {
+                        var time = new Date(r.reservationDate).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
+                        var stCls = r.status === 0 ? 'warning' : r.status === 1 ? 'success' : 'danger';
+                        var stTxt = r.status === 0 ? 'Gözləyir' : r.status === 1 ? 'Təsdiqləndi' : 'Ləğv';
+                        rHtml += '<div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background:#f8f9fa;border-radius:8px;"><div><strong>' + r.customerName + '</strong><br><small class="text-muted">' + r.guestCount + ' nəfər | ' + r.customerPhone + '</small></div><div class="text-end"><span class="badge bg-' + stCls + '">' + stTxt + '</span><br><small>' + time + '</small></div></div>';
                     });
-                    document.getElementById('today-reservations').innerHTML = resHtml || '<p class="text-muted text-center">Rezervasiya yoxdur</p>';
+                    document.getElementById('today-reservations').innerHTML = rHtml || '<p class="text-muted text-center">Rezervasiya yoxdur</p>';
                 }
-
-            } catch (err) {
-                console.error('Dashboard error:', err);
-            }
-        }
-
-        function getStatusBadge(status) {
-            var map = {
-                0: '<span class="badge bg-warning">Gözləyir</span>',
-                1: '<span class="badge bg-info">Hazırlanır</span>',
-                2: '<span class="badge bg-primary">Hazırdır</span>',
-                3: '<span class="badge bg-success">Verildi</span>',
-                4: '<span class="badge bg-secondary">Tamamlandı</span>',
-                5: '<span class="badge bg-danger">Ləğv</span>'
-            };
-            return map[status] || '<span class="badge bg-secondary">Naməlum</span>';
+            } catch (err) { console.error('Dashboard error:', err); }
         }
     </script>
-
 </body>
 </html>

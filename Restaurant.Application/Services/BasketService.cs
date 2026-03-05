@@ -36,20 +36,34 @@ public class BasketService : IBasketService
 
     public async Task<ApiResponse<BasketItemDto>> AddToBasketAsync(AddToBasketDto dto)
     {
+        // Masa yoxla
+        var table = await _unitOfWork.Tables.GetByIdAsync(dto.TableId);
+        if (table == null) return ApiResponse<BasketItemDto>.FailResponse("Masa tapılmadı.");
+
         var product = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
         if (product == null) return ApiResponse<BasketItemDto>.FailResponse("Məhsul tapılmadı.");
         if (!product.IsAvailable) return ApiResponse<BasketItemDto>.FailResponse("Məhsul mövcud deyil.");
+
+        // Miqdar limiti: 1-50
+        if (dto.Quantity <= 0 || dto.Quantity > 50)
+            return ApiResponse<BasketItemDto>.FailResponse("Miqdar 1-50 arasında olmalıdır.");
 
         var existingItems = await _unitOfWork.BasketItems.GetBasketItemsByTableIdAsync(dto.TableId);
         var existingItem = existingItems.FirstOrDefault(x => x.ProductId == dto.ProductId);
 
         if (existingItem != null)
         {
+            // Ümumi miqdar limiti
+            if (existingItem.Quantity + dto.Quantity > 50)
+                return ApiResponse<BasketItemDto>.FailResponse("Bir məhsuldan maksimum 50 ədəd ola bilər.");
             existingItem.Quantity += dto.Quantity;
             _unitOfWork.BasketItems.Update(existingItem);
         }
         else
         {
+            // Səbətdə maksimum 20 fərqli məhsul
+            if (existingItems.Count() >= 20)
+                return ApiResponse<BasketItemDto>.FailResponse("Səbətdə maksimum 20 fərqli məhsul ola bilər.");
             existingItem = new BasketItem { TableId = dto.TableId, ProductId = dto.ProductId, Quantity = dto.Quantity };
             await _unitOfWork.BasketItems.AddAsync(existingItem);
         }

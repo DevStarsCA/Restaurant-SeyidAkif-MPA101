@@ -33,7 +33,7 @@ public class ChatService : IChatService
         var message = new ChatMessage
         {
             TableId = dto.TableId,
-            Message = dto.Message,
+            Message = System.Net.WebUtility.HtmlEncode(dto.Message),
             ChatType = dto.ChatType,
             IsFromTable = dto.IsFromTable,
             WaiterId = dto.WaiterId,

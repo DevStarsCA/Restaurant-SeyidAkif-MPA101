@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Hesabat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .period-btn { padding: 8px 20px; border: 1px solid #dee2e6; border-radius: 20px; background: #fff; cursor: pointer; font-size: 13px; transition: all 0.3s; }
+        .period-btn.active, .period-btn:hover { background: #4e73df; color: #fff; border-color: #4e73df; }
+        .summary-box { text-align: center; padding: 20px; border-radius: 12px; background: #f8f9fc; }
+        .summary-box .value { font-size: 28px; font-weight: 700; }
+        .summary-box .label { font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+        .summary-box.green .value { color: #1cc88a; }
+        .summary-box.blue .value { color: #4e73df; }
+        .summary-box.orange .value { color: #f6c23e; }
+        .summary-box.red .value { color: #e74a3b; }
+        .summary-box.purple .value { color: #6f42c1; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-utensils"></i><span>Restoran Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="categories.html"><i class="fas fa-list"></i> <span>Kateqoriyalar</span></a></li>
+            <li><a href="products.html"><i class="fas fa-hamburger"></i> <span>Məhsullar</span></a></li>
+            <li><a href="tables.html"><i class="fas fa-chair"></i> <span>Masalar</span></a></li>
+            <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
+            <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
+            <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>İstifadəçilər</span></a></li>
+            <li class="active"><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>Hesabat</span></a></li>
+            <li class="divider"></li>
+            <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
+            <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
+            <li><a href="waiter.html"><i class="fas fa-user-tie"></i> <span>Ofisiant Panel</span></a></li>
+            <li class="divider"></li>
+            <li><a href="#" id="btn-logout"><i class="fas fa-sign-out-alt"></i> <span>Çıxış</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="btn-toggle" id="btn-toggle"><i class="fas fa-bars"></i></button>
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Hesabat</h5>
+            </div>
+            <div class="topbar-right">
+                <span class="user-name" id="user-name">Admin</span>
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- Period Selector -->
+            <div class="d-flex gap-2 mb-4 flex-wrap">
+                <button class="period-btn" data-period="today">Bu gün</button>
+                <button class="period-btn active" data-period="week">Bu həftə</button>
+                <button class="period-btn" data-period="month">Bu ay</button>
+                <button class="period-btn" data-period="all">Ümumi</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-2 col-md-4 col-6"><div class="summary-box blue"><div class="value" id="s-orders">0</div><div class="label">Sifariş</div></div></div>
+                <div class="col-lg-2 col-md-4 col-6"><div class="summary-box green"><div class="value" id="s-revenue">₼0</div><div class="label">Gəlir</div></div></div>
+                <div class="col-lg-2 col-md-4 col-6"><div class="summary-box purple"><div class="value" id="s-avg">₼0</div><div class="label">Ort. çek</div></div></div>
+                <div class="col-lg-2 col-md-4 col-6"><div class="summary-box orange"><div class="value" id="s-items">0</div><div class="label">Satılan məhsul</div></div></div>
+                <div class="col-lg-2 col-md-4 col-6"><div class="summary-box green"><div class="value" id="s-completed">0</div><div class="label">Tamamlanan</div></div></div>
+                <div class="col-lg-2 col-md-4 col-6"><div class="summary-box red"><div class="value" id="s-cancelled">0</div><div class="label">Ləğv edilən</div></div></div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-chart-line"></i> Gəlir trendi</h6></div>
+                        <div class="card-custom-body"><canvas id="revenueChart" height="100"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-chart-pie"></i> Sifariş statusları</h6></div>
+                        <div class="card-custom-body"><canvas id="statusChart" height="200"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hourly + Category -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-clock"></i> Saatlıq sifariş sıxlığı</h6></div>
+                        <div class="card-custom-body"><canvas id="hourlyChart" height="160"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-custom">
+                        <div class="card-custom-header"><h6><i class="fas fa-tags"></i> Kateqoriya üzrə satışlar</h6></div>
+                        <div class="card-custom-body"><canvas id="categoryChart" height="160"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card-custom">
+                        <div class="card-custom-header">
+                            <h6><i class="fas fa-list"></i> Seçilmiş dövrdəki sifarişlər</h6>
+                            <span class="badge bg-primary" id="filtered-count">0</span>
+                        </div>
+                        <div class="card-custom-body">
+                            <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
+                                <table class="table table-hover table-sm">
+                                    <thead style="position:sticky;top:0;background:#fff;"><tr><th>Sifariş №</th><th>Masa</th><th>Məhsullar</th><th>Məbləğ</th><th>Status</th><th>Tarix</th></tr></thead>
+                                    <tbody id="orders-table"><tr><td colspan="6" class="text-center text-muted">Yüklənir...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-common.js"></script>
+    <script>
+        checkAuth();
+        var allOrders = [];
+        var allCategories = [];
+        var currentPeriod = 'week';
+        var revenueChart = null, statusChart = null, hourlyChart = null, categoryChart = null;
+
+        document.addEventListener("DOMContentLoaded", function () { loadReports(); });
+
+        // Period buttons
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('period-btn') && e.target.dataset.period) {
+                document.querySelectorAll('.period-btn').forEach(function (b) { b.classList.remove('active'); });
+                e.target.classList.add('active');
+                currentPeriod = e.target.dataset.period;
+                updateAll();
+            }
+        });
+
+        async function loadReports() {
+            try {
+                var ordersRes = await authFetch('/Orders');
+                allOrders = (ordersRes && ordersRes.success) ? ordersRes.data : [];
+
+                var catRes = await authFetch('/Categories/with-products');
+                allCategories = (catRes && catRes.success) ? catRes.data : [];
+
+                updateAll();
+            } catch (err) { console.error('Reports error:', err); }
+        }
+
+        function getFilteredOrders() {
+            var now = new Date();
+            if (currentPeriod === 'today') {
+                var today = now.toDateString();
+                return allOrders.filter(function (o) { return new Date(o.orderDate).toDateString() === today; });
+            } else if (currentPeriod === 'week') {
+                var weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+                return allOrders.filter(function (o) { return new Date(o.orderDate) >= weekAgo; });
+            } else if (currentPeriod === 'month') {
+                var monthAgo = new Date(now); monthAgo.setDate(monthAgo.getDate() - 30);
+                return allOrders.filter(function (o) { return new Date(o.orderDate) >= monthAgo; });
+            }
+            return allOrders;
+        }
+
+        function getChartDays() {
+            if (currentPeriod === 'today') return 1;
+            if (currentPeriod === 'week') return 7;
+            if (currentPeriod === 'month') return 30;
+            return Math.min(90, Math.max(7, allOrders.length > 0 ? Math.ceil((new Date() - new Date(allOrders[allOrders.length - 1].orderDate)) / 86400000) : 30));
+        }
+
+        function updateAll() {
+            var filtered = getFilteredOrders();
+            var valid = filtered.filter(function (o) { return o.status !== 5; });
+            var cancelled = filtered.filter(function (o) { return o.status === 5; });
+            var completed = filtered.filter(function (o) { return o.status === 4; });
+            var totalRevenue = valid.reduce(function (s, o) { return s + (o.totalAmount || 0); }, 0);
+            var avgCheck = valid.length > 0 ? totalRevenue / valid.length : 0;
+            var totalItems = 0;
+            valid.forEach(function (o) { (o.orderItems || []).forEach(function (i) { totalItems += i.quantity || 1; }); });
+
+            document.getElementById('s-orders').textContent = filtered.length;
+            document.getElementById('s-revenue').textContent = '₼' + totalRevenue.toFixed(0);
+            document.getElementById('s-avg').textContent = '₼' + avgCheck.toFixed(2);
+            document.getElementById('s-items').textContent = totalItems;
+            document.getElementById('s-completed').textContent = completed.length;
+            document.getElementById('s-cancelled').textContent = cancelled.length;
+
+            buildRevenueChart(getChartDays());
+            buildStatusChart(filtered);
+            buildHourlyChart(filtered);
+            buildCategoryChart(valid);
+            buildOrdersTable(filtered);
+        }
+
+        function buildRevenueChart(days) {
+            var labels = [], dataRev = [], dataOrders = [];
+            for (var i = days - 1; i >= 0; i--) {
+                var d = new Date(); d.setDate(d.getDate() - i);
+                var dayStr = d.toDateString();
+                labels.push(days <= 7 ? d.toLocaleDateString('az', { weekday: 'short', day: '2-digit' }) : d.toLocaleDateString('az', { day: '2-digit', month: 'short' }));
+                var dayOrders = allOrders.filter(function (o) { return new Date(o.orderDate).toDateString() === dayStr && o.status !== 5; });
+                dataRev.push(dayOrders.reduce(function (s, o) { return s + (o.totalAmount || 0); }, 0));
+                dataOrders.push(dayOrders.length);
+            }
+            var ctx = document.getElementById('revenueChart').getContext('2d');
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Gəlir (₼)', data: dataRev, borderColor: '#4e73df', backgroundColor: 'rgba(78,115,223,0.08)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: days <= 14 ? 4 : 0, yAxisID: 'y' },
+                        { label: 'Sifariş sayı', data: dataOrders, borderColor: '#1cc88a', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5, 5], tension: 0.4, pointRadius: days <= 14 ? 3 : 0, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+                    scales: {
+                        y: { beginAtZero: true, position: 'left', ticks: { callback: function (v) { return '₼' + v; } } },
+                        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        function buildStatusChart(orders) {
+            var counts = [0, 0, 0, 0, 0, 0];
+            orders.forEach(function (o) { if (o.status >= 0 && o.status <= 5) counts[o.status]++; });
+            var ctx = document.getElementById('statusChart').getContext('2d');
+            if (statusChart) statusChart.destroy();
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gözləyir', 'Hazırlanır', 'Hazırdır', 'Verildi', 'Tamamlandı', 'Ləğv'],
+                    datasets: [{ data: counts, backgroundColor: ['#f6c23e', '#36b9cc', '#4e73df', '#1cc88a', '#858796', '#e74a3b'], borderWidth: 2 }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '60%' }
+            });
+        }
+
+        function buildHourlyChart(orders) {
+            var hours = [], counts = [];
+            for (var h = 8; h <= 23; h++) {
+                hours.push(h + ':00');
+                counts.push(orders.filter(function (o) { return new Date(o.orderDate).getHours() === h; }).length);
+            }
+            var ctx = document.getElementById('hourlyChart').getContext('2d');
+            if (hourlyChart) hourlyChart.destroy();
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: hours, datasets: [{ label: 'Sifariş', data: counts, backgroundColor: 'rgba(78,115,223,0.6)', borderRadius: 5 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function buildCategoryChart(orders) {
+            var catMap = {};
+            allCategories.forEach(function (cat) { catMap[cat.id] = { name: cat.name, revenue: 0 }; });
+            orders.forEach(function (o) {
+                (o.orderItems || []).forEach(function (item) {
+                    var catId = item.product ? item.product.categoryId : null;
+                    if (catId && catMap[catId]) catMap[catId].revenue += (item.unitPrice || 0) * (item.quantity || 1);
+                });
+            });
+            var labels = [], data = [], colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#fd7e14', '#6f42c1'];
+            Object.keys(catMap).forEach(function (id) { if (catMap[id].revenue > 0) { labels.push(catMap[id].name); data.push(catMap[id].revenue); } });
+            var ctx = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Gəlir (₼)', data: data, backgroundColor: colors.slice(0, labels.length), borderRadius: 5 }] },
+                options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { callback: function (v) { return '₼' + v; } } } } }
+            });
+        }
+
+        function buildOrdersTable(orders) {
+            document.getElementById('filtered-count').textContent = orders.length + ' sifariş';
+            var tbody = document.getElementById('orders-table');
+            if (orders.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Sifariş yoxdur</td></tr>'; return; }
+            var html = '';
+            orders.forEach(function (o) {
+                var items = o.orderItems || [];
+                var itemNames = items.map(function (i) { return (i.quantity || 1) + 'x ' + (i.productName || (i.product ? i.product.name : '?')); }).join(', ');
+                html += '<tr><td><strong>#' + (o.orderNumber || '') + '</strong></td><td>' + (o.tableName || '-') + '</td><td><small>' + itemNames + '</small></td><td>₼' + (o.totalAmount || 0).toFixed(2) + '</td><td>' + getOrderStatusBadge(o.status) + '</td><td><small>' + formatDateTime(o.orderDate) + '</small></td></tr>';
+            });
+            tbody.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

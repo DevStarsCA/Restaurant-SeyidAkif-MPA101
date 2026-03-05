@@ -71,6 +71,11 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> CreateAsync(CreateOrderDto dto)
     {
+        // Masa yoxla
+        var tableCheck = await _unitOfWork.Tables.GetByIdAsync(dto.TableId);
+        if (tableCheck == null)
+            return ApiResponse<OrderDto>.FailResponse("Masa tapılmadı.");
+
         var basketItems = await _unitOfWork.BasketItems.GetBasketItemsByTableIdAsync(dto.TableId);
         if (!basketItems.Any())
             return ApiResponse<OrderDto>.FailResponse("Səbət boşdur.");
