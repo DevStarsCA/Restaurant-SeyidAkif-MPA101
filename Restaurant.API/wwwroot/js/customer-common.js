@@ -228,6 +228,10 @@ function initCustomerPage() {
         $('.tst-res-btn').show();
     }
 
+    // Rezervasiya popup (QR olmayanda)
+    $('.tst-res-btn').on('click', function () { $('.tst-popup-bg').toggleClass('tst-active'); });
+    $('.tst-close-popup').on('click', function () { $('.tst-popup-bg').removeClass('tst-active'); });
+
     updateCartUI();
 
     // Səbət qty kontrolları

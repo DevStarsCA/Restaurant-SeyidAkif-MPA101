@@ -270,7 +270,7 @@
             var result;
             if (id) {
                 formData.append('Id', id);
-                result = await authFetchForm('/Products/' + id, formData, 'PUT');
+                result = await authFetchForm('/Products', formData, 'PUT');
             } else {
                 result = await authFetchForm('/Products', formData, 'POST');
             }

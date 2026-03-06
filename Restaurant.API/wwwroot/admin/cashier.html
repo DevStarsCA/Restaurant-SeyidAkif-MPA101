@@ -143,7 +143,7 @@
                         <i class="fas fa-money-bill"></i> Nağd
                     </button>
                     <button class="btn-pay btn-card" id="btn-card" onclick="payOrder('card')">
-                        <i class="fas fa-credit-card"></i> Kart
+                        <i class="fas fa-credit-card"></i> POS Terminal
                     </button>
                     <button class="btn-pay btn-print" onclick="printBill()">
                         <i class="fas fa-print"></i>
@@ -280,72 +280,31 @@
         async function payOrder(method) {
             if (!selectedOrder || selectedOrder.length === 0) return;
 
-            var methodText = method === 'cash' ? 'Nagd' : 'Kart';
-            if (!confirm(methodText + ' odenis tesdiqleyirsiniz?')) return;
+            var methodText = method === 'cash' ? 'Nagd odenis' : 'POS terminal ile odenis';
+            if (!confirm(methodText + ' tesdiqleyirsiniz?')) return;
 
             try {
                 var allSuccess = true;
 
                 for (var i = 0; i < selectedOrder.length; i++) {
                     var orderId = selectedOrder[i].id;
-
-                    if (method === 'cash') {
-                        var r = await fetch(API_BASE + '/Payments/cash/' + orderId, {
-                            method: 'POST',
-                            headers: { 'Authorization': 'Bearer ' + token }
-                        });
-                        var d = await r.json();
-                        if (!d.success) {
-                            alert('Xeta: ' + (d.message || 'Odenis ugursuz'));
-                            allSuccess = false;
-                            break;
-                        }
-                    } else {
-                        var r = await fetch(API_BASE + '/Payments/online/' + orderId, {
-                            method: 'POST',
-                            headers: { 'Authorization': 'Bearer ' + token }
-                        });
-                        var d = await r.json();
-                        if (d.success && d.data && d.data.hppUrl) {
-                            window.open(d.data.hppUrl, '_blank');
-                            // Kapital Bank sehifesi acildi - status yoxlama baslat
-                            var paymentId = d.data.paymentId;
-                            alert('Odenis sehifesi acildi. Musterinin odenisi tamamlamasini gozleyin.');
-                            // Status yoxla
-                            var checkInterval = setInterval(async function () {
-                                try {
-                                    var cr = await fetch(API_BASE + '/Payments/check/' + paymentId, {
-                                        headers: { 'Authorization': 'Bearer ' + token }
-                                    });
-                                    var cd = await cr.json();
-                                    if (cd.success && cd.data) {
-                                        if (cd.data.status === 2) { // Completed
-                                            clearInterval(checkInterval);
-                                            alert('Kart odenisi ugurla tamamlandi!');
-                                            loadData();
-                                        } else if (cd.data.status === 4 || cd.data.status === 5 || cd.data.status === 6) { // Cancelled/Rejected/Declined
-                                            clearInterval(checkInterval);
-                                            alert('Kart odenisi ugursuz oldu.');
-                                            loadData();
-                                        }
-                                    }
-                                } catch (e) { }
-                            }, 5000);
-                            return;
-                        } else {
-                            alert('Xeta: ' + (d.message || 'Online odenis yaradila bilmedi'));
-                            allSuccess = false;
-                            break;
-                        }
+                    var r = await fetch(API_BASE + '/Payments/cash/' + orderId, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    var d = await r.json();
+                    if (!d.success) {
+                        alert('Xeta: ' + (d.message || 'Odenis ugursuz'));
+                        allSuccess = false;
+                        break;
                     }
                 }
 
-                if (allSuccess && method === 'cash') {
-                    // Hesabi sifirla
+                if (allSuccess) {
                     selectedTableId = null;
                     selectedOrder = null;
                     document.getElementById('bill-table-name').textContent = 'Masa secin';
-                    document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-check-circle" style="color:#1cc88a;font-size:50px;"></i><p style="color:#1cc88a;font-weight:600;margin-top:15px;">Odenis qebul edildi!</p></div>';
+                    document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-check-circle" style="color:#1cc88a;font-size:50px;"></i><p style="color:#1cc88a;font-weight:600;margin-top:15px;">' + methodText + ' qebul edildi!</p></div>';
                     document.getElementById('bill-footer').style.display = 'none';
 
                     setTimeout(function () {
