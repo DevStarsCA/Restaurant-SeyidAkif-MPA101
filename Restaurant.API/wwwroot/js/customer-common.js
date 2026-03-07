@@ -7,12 +7,12 @@ var cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
 
 // Səbət funksiyaları
 function addToCart(productId, name, price, image) {
-    var existing = cart.find(function(item){return item.productId===productId;});
-    if(existing){ if(existing.quantity>=50){alert('Maksimum 50 ədəd.');return;} existing.quantity++;}
-    else{ if(cart.length>=20){alert('Səbətdə maksimum 20 fərqli məhsul ola bilər.');return;} cart.push({productId:productId,name:name,price:price,image:image,quantity:1});}
+    var existing = cart.find(function (item) { return item.productId === productId; });
+    if (existing) { if (existing.quantity >= 50) { alert('Maksimum 50 ədəd.'); return; } existing.quantity++; }
+    else { if (cart.length >= 20) { alert('Səbətdə maksimum 20 fərqli məhsul ola bilər.'); return; } cart.push({ productId: productId, name: name, price: price, image: image, quantity: 1 }); }
     saveCart(); updateCartUI();
 }
-function removeFromCart(productId) { cart = cart.filter(function(item){return item.productId!==productId;}); saveCart(); updateCartUI(); }
+function removeFromCart(productId) { cart = cart.filter(function (item) { return item.productId !== productId; }); saveCart(); updateCartUI(); }
 function saveCart() { sessionStorage.setItem('cart', JSON.stringify(cart)); }
 
 function updateCartUI() {
@@ -106,6 +106,12 @@ function initSignalR() {
         document.body.appendChild(div);
         setTimeout(function () { div.remove(); }, 5000);
         loadBill();
+    });
+
+    // Masa bağlandı — ödəniş tamamlandı, müştərini çıxart
+    orderConnection.on("TableClosed", function (message) {
+        sessionStorage.removeItem('cart');
+        window.location.href = 'payment-success.html?tableId=' + tableId;
     });
 
     chatConnection.on("ReceiveMessage", function (tId, message, isFromCustomer) {
@@ -208,7 +214,7 @@ function initCustomerPage() {
                 callBtn.style.background = '#999';
                 callBtn.innerHTML = '<i class="fas fa-check"></i>';
                 if (chatConnection) {
-                    chatConnection.invoke("SendMessageToWaiter", tableId, "⚡ Ofisiantı çağırıram!").catch(function () {});
+                    chatConnection.invoke("SendMessageToWaiter", tableId, "⚡ Ofisiantı çağırıram!").catch(function () { });
                 }
                 var toast = document.createElement('div');
                 toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#e74a3b;color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);';

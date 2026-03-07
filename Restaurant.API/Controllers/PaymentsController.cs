@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Restaurant.Application.Interfaces;
+using Restaurant.Infrastructure.Hubs;
 
 namespace Restaurant.API.Controllers;
 
@@ -9,26 +11,49 @@ namespace Restaurant.API.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService_App _paymentService;
+    private readonly IHubContext<OrderHub> _orderHub;
+    private readonly IOrderService _orderService;
 
-    public PaymentsController(IPaymentService_App paymentService)
+    public PaymentsController(IPaymentService_App paymentService, IHubContext<OrderHub> orderHub, IOrderService orderService)
     {
         _paymentService = paymentService;
+        _orderHub = orderHub;
+        _orderService = orderService;
     }
 
     [Authorize(Roles = "Cashier,Admin")]
     [HttpPost("cash/{orderId}")]
     public async Task<IActionResult> CreateCashPayment(Guid orderId)
     {
+        // Əvvəlcə order-dən tableId al
+        var order = await _orderService.GetByIdAsync(orderId);
         var result = await _paymentService.CreateCashPaymentAsync(orderId);
         if (!result.Success) return BadRequest(result);
+
+        // Masaya "TableClosed" siqnalı göndər
+        if (order.Success && order.Data != null)
+        {
+            await _orderHub.Clients.Group($"Table_{order.Data.TableId}")
+                .SendAsync("TableClosed", "Ödəniş tamamlandı. Təşəkkürlər!");
+        }
+
         return Ok(result);
     }
+
     [AllowAnonymous]
     [HttpPost("complete/{orderId}")]
     public async Task<IActionResult> CompleteOnlinePayment(Guid orderId)
     {
+        var order = await _orderService.GetByIdAsync(orderId);
         var result = await _paymentService.CreateCashPaymentAsync(orderId);
         if (!result.Success) return BadRequest(result);
+
+        if (order.Success && order.Data != null)
+        {
+            await _orderHub.Clients.Group($"Table_{order.Data.TableId}")
+                .SendAsync("TableClosed", "Onlayn ödəniş tamamlandı. Təşəkkürlər!");
+        }
+
         return Ok(result);
     }
 

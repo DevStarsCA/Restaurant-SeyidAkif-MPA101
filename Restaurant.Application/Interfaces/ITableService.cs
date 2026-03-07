@@ -18,4 +18,5 @@ public interface ITableService
     Task<ApiResponse<TableDto>> CreateAsync(CreateTableDto dto);
     Task<ApiResponse<TableDto>> UpdateAsync(UpdateTableDto dto);
     Task<ApiResponse<bool>> DeleteAsync(Guid id);
+    Task<ApiResponse<string>> GetQRCodeImageAsync(Guid tableId);
 }

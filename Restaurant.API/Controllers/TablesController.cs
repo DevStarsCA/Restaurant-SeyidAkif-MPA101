@@ -48,6 +48,15 @@ public class TablesController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [HttpGet("{id}/qrcode")]
+    public async Task<IActionResult> GetQRCode(Guid id)
+    {
+        var result = await _tableService.GetQRCodeImageAsync(id);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTableDto dto)
     {

@@ -258,5 +258,13 @@
             w.print();
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        var orderConn = new signalR.HubConnectionBuilder().withUrl("/hubs/order").withAutomaticReconnect().build();
+        orderConn.on("NewOrder", function () { loadTables(); });
+        orderConn.on("OrderStatusChanged", function () { loadTables(); });
+        orderConn.on("TableClosed", function () { loadTables(); });
+        orderConn.start().then(function () { orderConn.invoke("JoinKitchen"); }).catch(function (e) { console.log("SignalR:", e); });
+    </script>
 </body>
 </html>
