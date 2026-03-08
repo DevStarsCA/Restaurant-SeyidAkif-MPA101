@@ -47,6 +47,7 @@ public class ReservationsController : ControllerBase
         return Ok(result);
     }
 
+
     [Authorize(Roles = "Admin")]
     [HttpPut("status")]
     public async Task<IActionResult> UpdateStatus([FromBody] UpdateReservationStatusDto dto)
