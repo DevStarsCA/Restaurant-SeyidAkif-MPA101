@@ -41,10 +41,8 @@ public class PaymentAppService : IPaymentService_App
         order.Status = OrderStatus.Completed;
         _unitOfWork.Orders.Update(order);
 
-        // Evvelce save et ki DB-de status yenilensin
         await _unitOfWork.SaveChangesAsync();
 
-        // Sonra masani yoxla ve bosalt
         await CheckAndFreeTableAsync(order.TableId);
         await _unitOfWork.SaveChangesAsync();
 
@@ -90,6 +88,41 @@ public class PaymentAppService : IPaymentService_App
         }, "Ödəniş səhifəsinə yönləndirilir.");
     }
 
+    public async Task<ApiResponse<PaymentDto>> CompleteByPurchaseIdAsync(int purchaseId)
+    {
+        // Kapital Bank purchaseId ilə bizim Payment-i tap
+        var payments = await _unitOfWork.Payments.GetAsync(p => p.PurchaseId == purchaseId);
+        var payment = payments.FirstOrDefault();
+        if (payment == null) return ApiResponse<PaymentDto>.FailResponse("Ödəniş tapılmadı.");
+
+        // Artıq tamamlanıbsa, təkrar etmə
+        if (payment.Status == PaymentStatus.Completed)
+            return ApiResponse<PaymentDto>.SuccessResponse(_mapper.Map<PaymentDto>(payment), "Ödəniş artıq tamamlanıb.");
+
+        // Statusu Completed et
+        payment.Status = PaymentStatus.Completed;
+        _unitOfWork.Payments.Update(payment);
+
+        // Sifarişi Completed et
+        var order = await _unitOfWork.Orders.GetOrderWithDetailsAsync(payment.OrderId);
+        if (order != null)
+        {
+            order.Status = OrderStatus.Completed;
+            _unitOfWork.Orders.Update(order);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        // Masanı boşalt
+        if (order != null)
+        {
+            await CheckAndFreeTableAsync(order.TableId);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        return ApiResponse<PaymentDto>.SuccessResponse(_mapper.Map<PaymentDto>(payment), "Onlayn ödəniş tamamlandı.");
+    }
+
     public async Task<ApiResponse<PaymentDto>> CheckPaymentStatusAsync(Guid paymentId)
     {
         var payment = await _unitOfWork.Payments.GetByIdAsync(paymentId);
@@ -103,7 +136,6 @@ public class PaymentAppService : IPaymentService_App
         if (!result.IsSuccess)
             return ApiResponse<PaymentDto>.FailResponse($"Status yoxlama uğursuz: {result.ErrorMessage}");
 
-        // Kapital Bank statusunu bizim statusa çevir
         payment.Status = result.Status;
 
         if (result.Status == PaymentStatus.Completed)

@@ -13,33 +13,16 @@ public class Payment : AuditableEntity
     public decimal Amount { get; set; }
     public PaymentType PaymentType { get; set; }
     public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
-    public int? PurchaseId { get; set; } 
-    public string? Password { get; set; }    
-    public string? Secret { get; set; }  
+    public int? PurchaseId { get; set; }
+    public string? Password { get; set; }
+    public string? Secret { get; set; }
     public string? TransactionId { get; set; }
-    public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
+    public DateTime PaymentDate { get; set; } = DateTime.Now;
     public string? Note { get; set; }
 
     public Guid OrderId { get; set; }
 
     public Order Order { get; set; } = null!;
 
-    //public void MarkAsCompleted(string? transactionId = null)
-    //{
-    //    Status = PaymentStatus.Completed;
-    //    TransactionId = transactionId;
-    //}
-
-    //public void MarkAsFailed()
-    //{
-    //    Status = PaymentStatus.Failed;
-    //}
-
-    //public void Refund()
-    //{
-    //    if (Status != PaymentStatus.Completed)
-    //        throw new InvalidOperationException("Yalnız tamamlanmış ödənişlər geri qaytarıla bilər.");
-
-    //    Status = PaymentStatus.Refunded;
-    //}
+   
 }

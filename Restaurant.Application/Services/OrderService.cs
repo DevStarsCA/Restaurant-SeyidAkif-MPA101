@@ -82,7 +82,7 @@ public class OrderService : IOrderService
 
         var order = new Order
         {
-            OrderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}",
+            OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}",
             TableId = dto.TableId,
             Note = dto.Note,
             Status = OrderStatus.Pending

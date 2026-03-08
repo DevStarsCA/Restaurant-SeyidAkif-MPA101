@@ -25,12 +25,10 @@ public class PaymentsController : ControllerBase
     [HttpPost("cash/{orderId}")]
     public async Task<IActionResult> CreateCashPayment(Guid orderId)
     {
-        // Əvvəlcə order-dən tableId al
         var order = await _orderService.GetByIdAsync(orderId);
         var result = await _paymentService.CreateCashPaymentAsync(orderId);
         if (!result.Success) return BadRequest(result);
 
-        // Masaya "TableClosed" siqnalı göndər
         if (order.Success && order.Data != null)
         {
             await _orderHub.Clients.Group($"Table_{order.Data.TableId}")
@@ -58,15 +56,34 @@ public class PaymentsController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpPost("complete-by-purchase/{purchaseId}")]
+    public async Task<IActionResult> CompleteByPurchaseId(int purchaseId)
+    {
+        var result = await _paymentService.CompleteByPurchaseIdAsync(purchaseId);
+        if (!result.Success) return BadRequest(result);
+
+        // TableClosed siqnalı göndər
+        if (result.Data != null)
+        {
+            var order = await _orderService.GetByIdAsync(result.Data.OrderId);
+            if (order.Success && order.Data != null)
+            {
+                await _orderHub.Clients.Group($"Table_{order.Data.TableId}")
+                    .SendAsync("TableClosed", "Onlayn ödəniş tamamlandı. Təşəkkürlər!");
+            }
+        }
+
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
     [HttpPost("online/{orderId}")]
     public async Task<IActionResult> CreateOnlinePayment(Guid orderId)
     {
         var result = await _paymentService.CreateOnlinePaymentAsync(orderId);
 
-        // Kapital Bank xəta versə, test rejimində birbaşa success qaytar
         if (!result.Success && result.Message != null && result.Message.Contains("Kapital Bank"))
         {
-            // Test mode - fake payment
             return Ok(new
             {
                 success = true,

@@ -9,9 +9,9 @@ namespace Restaurant.Domain.Entities;
 
 public class WaiterTable : BaseEntity
 {
-    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+    public DateTime AssignedAt { get; set; } = DateTime.Now;
     public bool IsActive { get; set; } = true;
-    
+
     public Guid WaiterId { get; set; }
     public Guid TableId { get; set; }
 

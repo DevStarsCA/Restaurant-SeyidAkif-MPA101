@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ödəniş uğurlu</title>
+    <title>Ödəniş</title>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -47,16 +47,41 @@
 
     <script>
         var urlParams = new URLSearchParams(window.location.search);
+
+        // Kapital Bank callback: ?ID=1234&STATUS=FullyPaid
+        var kapitalId = urlParams.get('ID');
+        var kapitalStatus = urlParams.get('STATUS');
+
+        // Bizim internal: ?orderId=xxx veya ?tableId=xxx (kassir ödənişi)
         var orderId = urlParams.get('orderId');
         var tableId = urlParams.get('tableId') || sessionStorage.getItem('tableId') || '';
 
-        if (orderId) {
-            completePayment();
+        if (kapitalId) {
+            // Kapital Bank-dan gəlib - purchaseId ilə ödənişi tamamla
+            completeByPurchaseId(kapitalId, kapitalStatus);
+        } else if (orderId) {
+            // Internal - orderId ilə ödənişi tamamla
+            completeByOrderId(orderId);
         } else {
+            // Kassir ödənişi - birbaşa success
             showSuccess();
         }
 
-        async function completePayment() {
+        async function completeByPurchaseId(purchaseId, status) {
+            try {
+                var res = await fetch('/api/Payments/complete-by-purchase/' + purchaseId, { method: 'POST' });
+                var data = await res.json();
+                if (data.success) {
+                    showSuccess();
+                } else {
+                    showError();
+                }
+            } catch (err) {
+                showError();
+            }
+        }
+
+        async function completeByOrderId(orderId) {
             try {
                 var res = await fetch('/api/Payments/complete/' + orderId, { method: 'POST' });
                 var data = await res.json();

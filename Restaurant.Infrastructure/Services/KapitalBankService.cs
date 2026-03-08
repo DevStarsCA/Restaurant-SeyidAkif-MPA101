@@ -3,7 +3,6 @@ using Restaurant.Application.Common.Interfaces;
 using Restaurant.Application.Common.Models;
 using Restaurant.Domain.Enums;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
@@ -19,28 +18,37 @@ public class KapitalBankService : IKapitalBankService
         _httpClient = httpClientFactory.CreateClient("KapitalBank");
         _username = configuration["KapitalBank:Username"]!;
         _password = configuration["KapitalBank:Password"]!;
-        _baseUrl = configuration["KapitalBank:BaseUrl"] ?? "https://e-commerce.kapitalbank.az";
+        _baseUrl = configuration["KapitalBank:BaseUrl"] ?? "https://txpgtst.kapitalbank.az";
     }
 
     public async Task<KapitalPaymentResult> CreatePaymentAsync(decimal amount, string currency, string description, string redirectUrl)
     {
         try
         {
-            SetAuthHeader();
-
-            var requestBody = new
+            var payload = new
             {
                 order = new
                 {
-                    typeRid = "Purchase",
-                    amount = amount,
+                    typeRid = "Order_SMS",
+                    amount = amount.ToString("0.00").Replace(",", "."),
                     currency = currency,
+                    language = "az",
                     description = description,
-                    hppRedirectUrl = redirectUrl
+                    hppRedirectUrl = redirectUrl,
+                    hppCofCapturePurposes = new[] { "Cit" }
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync($"{_baseUrl}/api/order", requestBody);
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var json = JsonSerializer.Serialize(payload, options);
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/order/");
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var basicValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_username}:{_password}"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicValue);
+
+            using var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -54,11 +62,14 @@ public class KapitalBankService : IKapitalBankService
 
             var result = JsonSerializer.Deserialize<KapitalOrderResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+            // HppUrl-ə id və password əlavə et (Kapital Bank formatı)
+            var fullHppUrl = $"{result?.Order?.HppUrl}?id={result?.Order?.Id}&password={result?.Order?.Password}";
+
             return new KapitalPaymentResult
             {
                 IsSuccess = true,
                 PurchaseId = result?.Order?.Id,
-                HppUrl = result?.Order?.HppUrl,
+                HppUrl = fullHppUrl,
                 Password = result?.Order?.Password,
                 Secret = result?.Order?.Secret
             };
@@ -68,7 +79,7 @@ public class KapitalBankService : IKapitalBankService
             return new KapitalPaymentResult
             {
                 IsSuccess = false,
-                ErrorMessage = $"Xəta: {ex.Message}"
+                ErrorMessage = $"Kapital Bank xətası: {ex.Message}"
             };
         }
     }
@@ -77,9 +88,12 @@ public class KapitalBankService : IKapitalBankService
     {
         try
         {
-            SetAuthHeader();
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/api/order/{purchaseId}");
 
-            var response = await _httpClient.GetAsync($"{_baseUrl}/api/order/{purchaseId}?password={password}");
+            var basicValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_username}:{_password}"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicValue);
+
+            using var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -118,18 +132,25 @@ public class KapitalBankService : IKapitalBankService
     {
         try
         {
-            SetAuthHeader();
-
-            var requestBody = new
+            var payload = new
             {
                 order = new
                 {
                     typeRid = "Refund",
-                    amount = amount
+                    amount = amount.ToString("0.00").Replace(",", ".")
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync($"{_baseUrl}/api/order/{purchaseId}/refund?password={password}", requestBody);
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var json = JsonSerializer.Serialize(payload, options);
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/order/{purchaseId}/refund?password={password}");
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var basicValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_username}:{_password}"));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicValue);
+
+            using var response = await _httpClient.SendAsync(request);
 
             return new KapitalPaymentResult
             {
@@ -148,12 +169,6 @@ public class KapitalBankService : IKapitalBankService
         }
     }
 
-    private void SetAuthHeader()
-    {
-        var authBytes = Encoding.UTF8.GetBytes($"{_username}:{_password}");
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-    }
-
     private static PaymentStatus MapKapitalStatus(string kapitalStatus)
     {
         return kapitalStatus.ToLower() switch
@@ -169,6 +184,7 @@ public class KapitalBankService : IKapitalBankService
             _ => PaymentStatus.Pending
         };
     }
+
     // Kapital Bank response model-ləri
     internal class KapitalOrderResponse
     {
@@ -195,5 +211,4 @@ public class KapitalBankService : IKapitalBankService
         public decimal Amount { get; set; }
         public string? Currency { get; set; }
     }
-
 }
