@@ -231,12 +231,14 @@ function initCustomerPage() {
 
         initSignalR();
     } else {
-        $('.tst-res-btn').show();
+        // Rezervasiya düymələrini göstər və onclick bağla
+        $('.tst-res-btn').attr('style', 'display:inline-block !important').each(function () {
+            this.onclick = function (e) { e.preventDefault(); $('.tst-popup-bg').addClass('tst-active'); };
+        });
+        $('.tst-close-popup').each(function () {
+            this.onclick = function () { $('.tst-popup-bg').removeClass('tst-active'); };
+        });
     }
-
-    // Rezervasiya popup (QR olmayanda)
-    $('.tst-res-btn').on('click', function () { $('.tst-popup-bg').toggleClass('tst-active'); });
-    $('.tst-close-popup').on('click', function () { $('.tst-popup-bg').removeClass('tst-active'); });
 
     updateCartUI();
 
@@ -254,4 +256,51 @@ function initCustomerPage() {
 
     // Sifariş ver düymələri
     $('#btn-checkout, #btn-order-bar').on('click', function () { submitOrder(); });
+
+    // Rezervasiya form submit (bütün səhifələrdə)
+    $('#reservation-form').on('submit', async function (e) {
+        e.preventDefault();
+        var name = $('#res-name').val().trim();
+        var phone = $('#res-phone').val().trim();
+        var email = $('#res-email').val().trim();
+        var guests = $('#res-guests').val();
+        var dateStr = $('#res-date').val();
+        var time = $('#res-time').val();
+        var note = $('#res-note').val().trim();
+
+        if (!name || !phone || !guests || !dateStr || !time) { showResMessage('Bütün vacib sahələri doldurun.', false); return; }
+
+        var dateParts = dateStr.split('.');
+        var reservationDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+        var timeParts = time.split(':');
+        reservationDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0);
+
+        var dateFormatted = reservationDate.getFullYear() + '-' + String(reservationDate.getMonth() + 1).padStart(2, '0') + '-' + String(reservationDate.getDate()).padStart(2, '0') + 'T' + String(reservationDate.getHours()).padStart(2, '0') + ':' + String(reservationDate.getMinutes()).padStart(2, '0') + ':00';
+
+        try {
+            var guestCount = parseInt(guests);
+            var response = await fetch(API_BASE + '/Reservations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerName: name, customerPhone: phone, customerEmail: email || null, reservationDate: dateFormatted, guestCount: guestCount, note: note || null })
+            });
+            var data = await response.json();
+            if (data.success) {
+                showResMessage('Rezervasiya uğurla yaradıldı!', true);
+                $('#reservation-form')[0].reset();
+                if ($.fn.niceSelect) $('select').niceSelect('update');
+            } else { showResMessage(data.message || 'Xəta baş verdi.', false); }
+        } catch (err) { showResMessage('Server xətası.', false); }
+    });
+}
+
+function showResMessage(text, isSuccess) {
+    var msgEl = $('#reservation-message');
+    var textEl = $('#reservation-message-text');
+    textEl.text(text);
+    textEl.css('color', isSuccess ? '#4CAF50' : '#f44336');
+    msgEl.fadeIn();
+    if (isSuccess) {
+        setTimeout(function () { msgEl.fadeOut(); $('.tst-popup-bg').removeClass('tst-active'); }, 3000);
+    }
 }

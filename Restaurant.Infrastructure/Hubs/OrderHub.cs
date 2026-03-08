@@ -28,6 +28,10 @@ public class OrderHub : Hub
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, $"Table_{tableId}");
     }
+    public async Task JoinAdmin()
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "Admin");
+    }
 
     public async Task NotifyNewOrder(string orderNumber, string tableName)
     {

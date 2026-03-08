@@ -527,65 +527,7 @@
     <script>
         $(document).ready(function () {
             initCustomerPage();
-
-            // Reservation form submit
-            $('#reservation-form').on('submit', async function (e) {
-                e.preventDefault();
-
-                const name = $('#res-name').val().trim();
-                const phone = $('#res-phone').val().trim();
-                const email = $('#res-email').val().trim();
-                const guests = $('#res-guests').val();
-                const dateStr = $('#res-date').val();
-                const time = $('#res-time').val();
-                const note = $('#res-note').val().trim();
-
-                if (!name || !phone || !guests || !dateStr || !time) {
-                    showResMessage('Zəhmət olmasa bütün vacib sahələri doldurun.', false);
-                    return;
-                }
-
-                const dateParts = dateStr.split('.');
-                const reservationDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-                const timeParts = time.split(':');
-                reservationDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0);
-
-                try {
-                    const guestCount = parseInt(guests);
-                    const response = await fetch(`${API_BASE}/Reservations`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            customerName: name, customerPhone: phone,
-                            customerEmail: email || null,
-                            reservationDate: reservationDate.toISOString(),
-                            guestCount: guestCount, note: note || null
-                        })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        showResMessage('Rezervasiya uğurla yaradıldı!', true);
-                        $('#reservation-form')[0].reset();
-                        $('select').niceSelect('update');
-                    } else {
-                        showResMessage(data.message || 'Xəta baş verdi.', false);
-                    }
-                } catch (err) {
-                    showResMessage('Server xətası.', false);
-                }
-            });
         });
-
-        function showResMessage(text, isSuccess) {
-            const msgEl = $('#reservation-message');
-            const textEl = $('#reservation-message-text');
-            textEl.text(text);
-            textEl.css('color', isSuccess ? '#4CAF50' : '#f44336');
-            msgEl.fadeIn();
-            if (isSuccess) {
-                setTimeout(() => { msgEl.fadeOut(); $('.tst-popup-bg').removeClass('tst-active'); }, 3000);
-            }
-        }
     </script>
 
 </body>

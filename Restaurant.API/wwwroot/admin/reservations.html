@@ -20,6 +20,7 @@
             <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
             <li class="active"><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
             <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>İstifadəçilər</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>Hesabat</span></a></li>
             <li class="divider"></li>
             <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
             <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
@@ -154,6 +155,21 @@
             showToast('Rezervasiya silindi', 'success');
             loadReservations();
         }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        var resConn = new signalR.HubConnectionBuilder().withUrl("/hubs/order").withAutomaticReconnect().build();
+        resConn.on("NewReservation", function (customerName) {
+            loadReservations();
+            showToast('Yeni rezervasiya: ' + customerName, 'success');
+        });
+        resConn.on("NewOrder", function () { loadReservations(); });
+        resConn.on("OrderStatusChanged", function () { loadReservations(); });
+        resConn.start().then(function () {
+            resConn.invoke("JoinAdmin").catch(function (e) { console.log("JoinAdmin error:", e); });
+            resConn.invoke("JoinKitchen").catch(function (e) { console.log("JoinKitchen error:", e); });
+            console.log("SignalR connected for reservations");
+        }).catch(function (e) { console.log("SignalR error:", e); });
     </script>
 </body>
 </html>

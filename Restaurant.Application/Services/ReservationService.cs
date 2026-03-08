@@ -16,17 +16,40 @@ public class ReservationService : IReservationService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
-   
+
     public async Task<ApiResponse<List<ReservationDto>>> GetAllAsync()
     {
+        // 1 saatdan artiq vaxti kecmis rezervasiyalari sil
+        await CleanupExpiredReservationsAsync();
+
         var reservations = await _unitOfWork.Reservations.GetAllAsync();
         return ApiResponse<List<ReservationDto>>.SuccessResponse(_mapper.Map<List<ReservationDto>>(reservations));
     }
 
     public async Task<ApiResponse<List<ReservationDto>>> GetByDateAsync(DateTime date)
     {
+        await CleanupExpiredReservationsAsync();
+
         var reservations = await _unitOfWork.Reservations.GetReservationsByDateAsync(date);
         return ApiResponse<List<ReservationDto>>.SuccessResponse(_mapper.Map<List<ReservationDto>>(reservations));
+    }
+
+    private async Task CleanupExpiredReservationsAsync()
+    {
+        var allReservations = await _unitOfWork.Reservations.GetAllAsync();
+        var cutoff = DateTime.UtcNow.AddHours(-1);
+        var expired = allReservations.Where(r =>
+            r.ReservationDate < cutoff &&
+            (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)
+        ).ToList();
+
+        foreach (var r in expired)
+        {
+            _unitOfWork.Reservations.Delete(r);
+        }
+
+        if (expired.Any())
+            await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task<ApiResponse<ReservationDto>> CreateAsync(CreateReservationDto dto)

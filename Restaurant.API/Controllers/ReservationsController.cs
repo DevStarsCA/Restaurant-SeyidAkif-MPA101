@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Restaurant.Application.DTOs.ReservationDtos;
 using Restaurant.Application.Interfaces;
+using Restaurant.Infrastructure.Hubs;
 
 namespace Restaurant.API.Controllers;
 
@@ -10,10 +12,12 @@ namespace Restaurant.API.Controllers;
 public class ReservationsController : ControllerBase
 {
     private readonly IReservationService _reservationService;
+    private readonly IHubContext<OrderHub> _orderHub;
 
-    public ReservationsController(IReservationService reservationService)
+    public ReservationsController(IReservationService reservationService, IHubContext<OrderHub> orderHub)
     {
         _reservationService = reservationService;
+        _orderHub = orderHub;
     }
 
     [Authorize(Roles = "Admin")]
@@ -37,6 +41,9 @@ public class ReservationsController : ControllerBase
     {
         var result = await _reservationService.CreateAsync(dto);
         if (!result.Success) return BadRequest(result);
+
+        await _orderHub.Clients.Group("Admin").SendAsync("NewReservation", result.Data!.CustomerName);
+
         return Ok(result);
     }
 

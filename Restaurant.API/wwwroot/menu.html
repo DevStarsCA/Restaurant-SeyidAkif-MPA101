@@ -226,16 +226,6 @@
             } catch (err) { console.error('Menu load error:', err); $('#menu-loading').html('<div class="tst-text">Menyu yüklənərkən xəta baş verdi.</div>'); }
         }
 
-        // Rezervasiya
-        $('#reservation-form').on('submit', async function(e){
-            e.preventDefault(); var name=$('#res-name').val().trim();var phone=$('#res-phone').val().trim();var email=$('#res-email').val().trim();var guests=$('#res-guests').val();var dateStr=$('#res-date').val();var time=$('#res-time').val();var note=$('#res-note').val().trim();
-            if(!name||!phone||!guests||!dateStr||!time){showResMessage('Bütün vacib sahələri doldurun.',false);return;}
-            var dateParts=dateStr.split('.');var reservationDate=new Date(dateParts[2],dateParts[1]-1,dateParts[0]);var timeParts=time.split(':');reservationDate.setHours(parseInt(timeParts[0]),parseInt(timeParts[1]),0);
-            try{var guestCount=parseInt(guests);var response=await fetch(API_BASE+'/Reservations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({customerName:name,customerPhone:phone,customerEmail:email||null,reservationDate:reservationDate.toISOString(),guestCount:guestCount,note:note||null})});var data=await response.json();
-                if(data.success){showResMessage('Rezervasiya uğurla yaradıldı!',true);$('#reservation-form')[0].reset();$('select').niceSelect('update');}else{showResMessage(data.message||'Xəta baş verdi.',false);}
-            }catch(err){showResMessage('Server xətası.',false);}
-        });
-        function showResMessage(text,isSuccess){var msgEl=$('#reservation-message');var textEl=$('#reservation-message-text');textEl.text(text);textEl.css('color',isSuccess?'#4CAF50':'#f44336');msgEl.fadeIn();if(isSuccess){setTimeout(function(){msgEl.fadeOut();$('.tst-popup-bg').removeClass('tst-active');},3000);}}
     </script>
 </body>
 </html>

@@ -214,5 +214,14 @@
             } catch (err) { console.error('Dashboard error:', err); }
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        var dashConn = new signalR.HubConnectionBuilder().withUrl("/hubs/order").withAutomaticReconnect().build();
+        dashConn.on("NewOrder", function () { loadDashboard(); });
+        dashConn.on("OrderStatusChanged", function () { loadDashboard(); });
+        dashConn.on("TableClosed", function () { loadDashboard(); });
+        dashConn.on("NewReservation", function () { loadDashboard(); });
+        dashConn.start().then(function () { dashConn.invoke("JoinKitchen"); dashConn.invoke("JoinAdmin"); }).catch(function (e) { console.log("SignalR:", e); });
+    </script>
 </body>
 </html>

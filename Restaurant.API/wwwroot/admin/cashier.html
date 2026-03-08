@@ -152,6 +152,23 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Təsdiq Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius:15px;border:none;box-shadow:0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-body text-center" style="padding:30px;">
+                    <div id="confirm-icon" style="font-size:50px;margin-bottom:15px;">💳</div>
+                    <h5 id="confirm-title" style="font-weight:700;margin-bottom:10px;">Ödəniş təsdiqi</h5>
+                    <p id="confirm-text" style="color:#999;font-size:14px;margin-bottom:25px;">Nağd ödəniş təsdiqləyirsiniz?</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light flex-fill" style="border-radius:10px;padding:12px;" onclick="confirmModal.hide();">Ləğv et</button>
+                        <button class="btn flex-fill" id="confirm-btn" style="border-radius:10px;padding:12px;color:#fff;font-weight:600;" onclick="confirmCallback();">Təsdiqlə</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         var API_BASE = '/api';
@@ -162,6 +179,22 @@
         var allOrders = [];
         var selectedTableId = null;
         var selectedOrder = null;
+        var confirmModal = null;
+        var confirmCallback = function () { };
+
+        confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+        function showConfirm(icon, title, text, btnColor, callback) {
+            document.getElementById('confirm-icon').textContent = icon;
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-text').textContent = text;
+            document.getElementById('confirm-btn').style.background = btnColor;
+            confirmCallback = function () {
+                confirmModal.hide();
+                callback();
+            };
+            confirmModal.show();
+        }
 
         // Saat
         function updateClock() {
@@ -280,43 +313,53 @@
         async function payOrder(method) {
             if (!selectedOrder || selectedOrder.length === 0) return;
 
-            var methodText = method === 'cash' ? 'Nagd odenis' : 'POS terminal ile odenis';
-            if (!confirm(methodText + ' tesdiqleyirsiniz?')) return;
+            var icon = method === 'cash' ? '💵' : '💳';
+            var title = method === 'cash' ? 'Nağd ödəniş' : 'POS Terminal ödəniş';
+            var text = method === 'cash' ? 'Nağd ödəniş təsdiqləyirsiniz?' : 'POS terminal ilə ödəniş təsdiqləyirsiniz?';
+            var color = method === 'cash' ? '#1cc88a' : '#4e73df';
 
-            try {
-                var allSuccess = true;
-
-                for (var i = 0; i < selectedOrder.length; i++) {
-                    var orderId = selectedOrder[i].id;
-                    var r = await fetch(API_BASE + '/Payments/cash/' + orderId, {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    var d = await r.json();
-                    if (!d.success) {
-                        alert('Xeta: ' + (d.message || 'Odenis ugursuz'));
-                        allSuccess = false;
-                        break;
+            showConfirm(icon, title, text, color, async function () {
+                var methodText = method === 'cash' ? 'Nağd ödəniş' : 'POS terminal ilə ödəniş';
+                try {
+                    var allSuccess = true;
+                    for (var i = 0; i < selectedOrder.length; i++) {
+                        var orderId = selectedOrder[i].id;
+                        var r = await fetch(API_BASE + '/Payments/cash/' + orderId, {
+                            method: 'POST',
+                            headers: { 'Authorization': 'Bearer ' + token }
+                        });
+                        var d = await r.json();
+                        if (!d.success) {
+                            showToast('Xəta: ' + (d.message || 'Ödəniş uğursuz'), 'error');
+                            allSuccess = false;
+                            break;
+                        }
                     }
+                    if (allSuccess) {
+                        selectedTableId = null;
+                        selectedOrder = null;
+                        document.getElementById('bill-table-name').textContent = 'Masa seçin';
+                        document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-check-circle" style="color:#1cc88a;font-size:50px;"></i><p style="color:#1cc88a;font-weight:600;margin-top:15px;">' + methodText + ' qəbul edildi!</p></div>';
+                        document.getElementById('bill-footer').style.display = 'none';
+                        setTimeout(function () {
+                            document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-hand-pointer"></i><p>Hesab görmək üçün masa seçin</p></div>';
+                        }, 3000);
+                        loadData();
+                    }
+                } catch (err) {
+                    showToast('Xəta baş verdi', 'error');
+                    console.error(err);
                 }
+            });
+        }
 
-                if (allSuccess) {
-                    selectedTableId = null;
-                    selectedOrder = null;
-                    document.getElementById('bill-table-name').textContent = 'Masa secin';
-                    document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-check-circle" style="color:#1cc88a;font-size:50px;"></i><p style="color:#1cc88a;font-weight:600;margin-top:15px;">' + methodText + ' qebul edildi!</p></div>';
-                    document.getElementById('bill-footer').style.display = 'none';
-
-                    setTimeout(function () {
-                        document.getElementById('bill-items').innerHTML = '<div class="empty-bill"><i class="fas fa-hand-pointer"></i><p>Hesab gormek ucun masa secin</p></div>';
-                    }, 3000);
-
-                    loadData();
-                }
-            } catch (err) {
-                alert('Xeta bas verdi');
-                console.error(err);
-            }
+        function showToast(message, type) {
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;top:20px;right:20px;padding:15px 25px;border-radius:10px;color:#fff;font-weight:600;z-index:9999;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
+            toast.style.background = type === 'error' ? '#e74a3b' : '#1cc88a';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 3000);
         }
 
         function printBill() {
@@ -368,7 +411,7 @@
         loadData();
         setInterval(loadData, 15000);
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>-->
     <script>
         var connection = new signalR.HubConnectionBuilder()
             .withUrl("/hubs/order")

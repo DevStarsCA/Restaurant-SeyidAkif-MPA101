@@ -93,12 +93,16 @@ public class TableService : ITableService
         return ApiResponse<bool>.SuccessResponse(true, "Masa silindi.");
     }
 
-    public async Task<ApiResponse<string>> GetQRCodeImageAsync(Guid tableId)
+    public async Task<ApiResponse<string>> GetQRCodeImageAsync(Guid tableId, string? baseUrl)
     {
         var table = await _unitOfWork.Tables.GetByIdAsync(tableId);
         if (table == null) return ApiResponse<string>.FailResponse("Masa tapılmadı.");
 
-        var qrBase64 = _qrCodeService.GenerateQRCode($"menu.html?tableId={tableId}");
+        var url = string.IsNullOrEmpty(baseUrl)
+            ? $"menu.html?tableId={tableId}"
+            : $"{baseUrl}/menu.html?tableId={tableId}";
+
+        var qrBase64 = _qrCodeService.GenerateQRCode(url);
         return ApiResponse<string>.SuccessResponse(qrBase64);
     }
 }

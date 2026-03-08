@@ -49,9 +49,9 @@ public class TablesController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet("{id}/qrcode")]
-    public async Task<IActionResult> GetQRCode(Guid id)
+    public async Task<IActionResult> GetQRCode(Guid id, [FromQuery] string? baseUrl)
     {
-        var result = await _tableService.GetQRCodeImageAsync(id);
+        var result = await _tableService.GetQRCodeImageAsync(id, baseUrl);
         if (!result.Success) return NotFound(result);
         return Ok(result);
     }

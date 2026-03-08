@@ -71,6 +71,7 @@
             <li><a href="orders.html"><i class="fas fa-receipt"></i> <span>Sifarişlər</span></a></li>
             <li><a href="reservations.html"><i class="fas fa-calendar-check"></i> <span>Rezervasiyalar</span></a></li>
             <li><a href="waiters.html"><i class="fas fa-user-tie"></i> <span>İstifadəçilər</span></a></li>
+            <li><a href="reports.html"><i class="fas fa-chart-bar"></i> <span>Hesabat</span></a></li>
             <li class="divider"></li>
             <li><a href="kitchen.html"><i class="fas fa-fire"></i> <span>Mətbəx</span></a></li>
             <li><a href="cashier.html"><i class="fas fa-cash-register"></i> <span>Kassa</span></a></li>
@@ -240,7 +241,7 @@
             document.getElementById('qrUrl').textContent = menuUrl;
             try {
                 var token = sessionStorage.getItem('token');
-                var r = await fetch(API_BASE + '/Tables/' + tableId + '/qrcode', { headers: { 'Authorization': 'Bearer ' + token } });
+                var r = await fetch(API_BASE + '/Tables/' + tableId + '/qrcode?baseUrl=' + encodeURIComponent(window.location.origin), { headers: { 'Authorization': 'Bearer ' + token } });
                 var d = await r.json();
                 if (d.success && d.data) { document.getElementById('qrImage').src = 'data:image/png;base64,' + d.data; }
                 else { document.getElementById('qrImage').src = ''; document.getElementById('qrImage').alt = 'QR kod yaradila bilmedi'; }
