@@ -39,23 +39,6 @@ public class PaymentsController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("complete/{orderId}")]
-    public async Task<IActionResult> CompleteOnlinePayment(Guid orderId)
-    {
-        var order = await _orderService.GetByIdAsync(orderId);
-        var result = await _paymentService.CreateCashPaymentAsync(orderId);
-        if (!result.Success) return BadRequest(result);
-
-        if (order.Success && order.Data != null)
-        {
-            await _orderHub.Clients.Group($"Table_{order.Data.TableId}")
-                .SendAsync("TableClosed", "Onlayn ödəniş tamamlandı. Təşəkkürlər!");
-        }
-
-        return Ok(result);
-    }
-
-    [AllowAnonymous]
     [HttpPost("complete-by-purchase/{purchaseId}")]
     public async Task<IActionResult> CompleteByPurchaseId(int purchaseId)
     {

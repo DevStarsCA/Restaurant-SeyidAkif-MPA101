@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
