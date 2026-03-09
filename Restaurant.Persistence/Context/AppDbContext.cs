@@ -26,7 +26,12 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Global query filter - soft delete
+        builder.Entity<AppUser>(b =>
+        {
+            b.Property(x => x.RefreshTokenExpiryTime)
+                .HasColumnType("timestamp with time zone");
+        });
+
         builder.Entity<Table>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<Product>().HasQueryFilter(x => !x.IsDeleted);
@@ -54,6 +59,5 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        configurationBuilder.Properties<DateTime>().HaveColumnType("timestamp without time zone");
     }
 }

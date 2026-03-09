@@ -13,7 +13,7 @@ public class ChatMessage : BaseEntity
     public string Message { get; set; } = string.Empty;
     public ChatType ChatType { get; set; }
     public bool IsRead { get; set; } = false;
-    public DateTime SentAt { get; set; } = DateTime.Now;
+    public DateTime SentAt { get; set; } = DateTime.UtcNow;
     public string SenderName { get; set; } = string.Empty;
     public bool IsFromTable { get; set; }
 

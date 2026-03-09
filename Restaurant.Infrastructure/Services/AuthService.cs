@@ -46,7 +46,7 @@ namespace Restaurant.Infrastructure.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTimeOffset.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
             return ApiResponse<AuthResponseDto>.SuccessResponse(new AuthResponseDto
@@ -91,7 +91,7 @@ namespace Restaurant.Infrastructure.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTimeOffset.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
             return ApiResponse<AuthResponseDto>.SuccessResponse(new AuthResponseDto
@@ -136,7 +136,7 @@ namespace Restaurant.Infrastructure.Services
                 return ApiResponse<AuthResponseDto>.FailResponse("Token yanlışdır.");
 
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTimeOffset.UtcNow)
                 return ApiResponse<AuthResponseDto>.FailResponse("Refresh token etibarsızdır.");
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -144,7 +144,7 @@ namespace Restaurant.Infrastructure.Services
             var newRefreshToken = GenerateRefreshToken();
 
             user.RefreshToken = newRefreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTimeOffset.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
             return ApiResponse<AuthResponseDto>.SuccessResponse(new AuthResponseDto

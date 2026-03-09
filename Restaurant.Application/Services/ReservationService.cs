@@ -37,7 +37,7 @@ public class ReservationService : IReservationService
     private async Task CleanupExpiredReservationsAsync()
     {
         var allReservations = await _unitOfWork.Reservations.GetAllAsync();
-        var cutoff = DateTime.Now.AddHours(-1);
+        var cutoff = DateTime.UtcNow.AddHours(-1);
         var expired = allReservations.Where(r =>
             r.ReservationDate < cutoff &&
             (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)

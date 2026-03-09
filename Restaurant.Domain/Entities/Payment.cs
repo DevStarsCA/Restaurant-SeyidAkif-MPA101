@@ -17,7 +17,7 @@ public class Payment : AuditableEntity
     public string? Password { get; set; }
     public string? Secret { get; set; }
     public string? TransactionId { get; set; }
-    public DateTime PaymentDate { get; set; } = DateTime.Now;
+    public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
     public string? Note { get; set; }
 
     public Guid OrderId { get; set; }

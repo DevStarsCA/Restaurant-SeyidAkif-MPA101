@@ -5,7 +5,7 @@ using Restaurant.Infrastructure.ServiceRegistration;
 using Restaurant.Persistence.ServiceRegistration;
 
 var builder = WebApplication.CreateBuilder(args);
-
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 // Layer Services
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);
@@ -52,13 +52,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseMiddleware<Restaurant.API.Middlewares.ExceptionMiddleware>();
@@ -79,7 +77,9 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        context.Database.Migrate();
+        Console.WriteLine("DB MIGRASIYA BASLADI...");
+        await context.Database.MigrateAsync();
+        Console.WriteLine("DB MIGRASIYA BITDI!");
 
         // 1. Roller
         string[] roles = { "Admin", "Waiter", "Kitchen", "Cashier" };
@@ -211,9 +211,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine("SEED XETASI: " + ex.Message);
-        if (ex.InnerException != null)
-            Console.WriteLine("INNER: " + ex.InnerException.Message);
+        Console.WriteLine("SEED XETASI: " + ex);
+        throw;
     }
 }
 

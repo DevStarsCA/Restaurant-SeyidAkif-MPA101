@@ -14,7 +14,7 @@ public class Order : AuditableEntity
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal TotalAmount { get; set; }
     public string? Note { get; set; }
-    public DateTime OrderDate { get; set; } = DateTime.Now;
+    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
     public Guid TableId { get; set; }
     public Guid? WaiterId { get; set; }
