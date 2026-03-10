@@ -194,18 +194,18 @@ function initCustomerPage() {
             try { var res = await fetch(API_BASE + '/Payments/online/' + billOrders[0].id, { method: 'POST', headers: { 'Content-Type': 'application/json' } }); var data = await res.json(); if (data.success && data.data && data.data.hppUrl) { window.location.href = data.data.hppUrl; } else { alert('Online odenis mumkun deyil.'); } } catch (err) { alert('Server xetasi'); }
         });
         $('#btn-bill-cash').on('click', function (e) {
-            $('#btn-bill-cash').on('click', function (e) {
-                e.preventDefault();
-                if (orderConnection) {
-                    orderConnection.invoke("NotifyTablePaymentRequest", tableId).catch(function () { });
-                }
-                var toast = document.createElement('div');
-                toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#1cc88a;color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
-                toast.textContent = 'Kassir masanıza gələcək. Təşəkkürlər!';
-                document.body.appendChild(toast);
-                setTimeout(function () { toast.remove(); }, 4000);
-                $('#bill-window').hide();
-            });
+            e.preventDefault();
+            if (orderConnection) {
+                orderConnection.invoke("NotifyTablePaymentRequest", tableId).catch(function () { });
+            }
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#1cc88a;color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
+            toast.textContent = 'Kassir masanıza gələcək. Təşəkkürlər!';
+            document.body.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 4000);
+            $('#bill-window').hide();
+        });
+
 
         // Chat
         $('#chat-float').show();
