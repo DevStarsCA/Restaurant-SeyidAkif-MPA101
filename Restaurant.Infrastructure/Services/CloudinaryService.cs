@@ -22,6 +22,13 @@ public class CloudinaryService : ICloudinaryService
     {
         if (file.Length <= 0) return string.Empty;
 
+        var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+        if (!allowedTypes.Contains(file.ContentType.ToLower()))
+            throw new Exception("Yalnız şəkil faylları (jpg, png, gif, webp) yüklənə bilər.");
+
+        if (file.Length > 5 * 1024 * 1024)
+            throw new Exception("Fayl ölçüsü maksimum 5MB ola bilər.");
+
         await using var stream = file.OpenReadStream();
         var uploadParams = new ImageUploadParams
         {
