@@ -94,7 +94,8 @@
             var now = new Date();
             var activeList = [];
             for (var i = 0; i < data.data.length; i++) {
-                var resDate = new Date(data.data[i].reservationDate);
+                var resParts = data.data[i].reservationDate.replace('T', ' ').split(/[- :]/);
+                var resDate = new Date(resParts[0], resParts[1] - 1, resParts[2], resParts[3] || 0, resParts[4] || 0);
                 var diffHours = (now - resDate) / (1000 * 60 * 60);
                 if (diffHours > 1) {
                     await authFetch('/Reservations/' + data.data[i].id, { method: 'DELETE' });
