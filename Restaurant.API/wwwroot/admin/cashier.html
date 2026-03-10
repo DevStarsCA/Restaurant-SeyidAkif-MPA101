@@ -356,7 +356,8 @@
         function showToast(message, type) {
             var toast = document.createElement('div');
             toast.style.cssText = 'position:fixed;top:20px;right:20px;padding:15px 25px;border-radius:10px;color:#fff;font-weight:600;z-index:9999;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
-            toast.style.background = type === 'error' ? '#e74a3b' : '#1cc88a';
+            toast.style.background = type === 'error' ? '#e74a3b' : type === 'warning' ? '#f6c23e' : '#1cc88a';
+            toast.style.color = type === 'warning' ? '#333' : '#fff';
             toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(function () { toast.remove(); }, 3000);
@@ -424,6 +425,13 @@
 
         connection.on("OrderStatusChanged", function (orderNumber, status) {
             loadData();
+        });
+
+        connection.on("TablePaymentRequest", function (tableId) {
+            var table = allTables.find(function (t) { return t.id === tableId; });
+            var tableName = table ? table.name : 'Masa';
+            showToast(tableName + ' masada ödəmək istəyir!', 'warning');
+            selectTable(tableId);
         });
 
         connection.start().then(function () {

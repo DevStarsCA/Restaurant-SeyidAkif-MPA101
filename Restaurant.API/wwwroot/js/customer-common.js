@@ -193,7 +193,13 @@ function initCustomerPage() {
             if (!billOrders || billOrders.length === 0) { alert('Sifaris yoxdur'); return; }
             try { var res = await fetch(API_BASE + '/Payments/online/' + billOrders[0].id, { method: 'POST', headers: { 'Content-Type': 'application/json' } }); var data = await res.json(); if (data.success && data.data && data.data.hppUrl) { window.location.href = data.data.hppUrl; } else { alert('Online odenis mumkun deyil.'); } } catch (err) { alert('Server xetasi'); }
         });
-        $('#btn-bill-cash').on('click', function (e) { e.preventDefault(); alert('Kassir masaniza gelecek. Tesekkurler!'); });
+        $('#btn-bill-cash').on('click', function (e) {
+            e.preventDefault();
+            if (orderConnection) {
+                orderConnection.invoke("NotifyTablePaymentRequest", tableId).catch(function () { });
+            }
+            alert('Kassir masanıza gələcək. Təşəkkürlər!');
+        });
 
         // Chat
         $('#chat-float').show();

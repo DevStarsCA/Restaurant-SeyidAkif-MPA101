@@ -47,4 +47,9 @@ public class OrderHub : Hub
     {
         await Clients.Group($"Table_{tableId}").SendAsync("OrderStatusChanged", orderNumber, status);
     }
+
+    public async Task NotifyTablePaymentRequest(string tableId)
+    {
+        await Clients.Group("Cashier").SendAsync("TablePaymentRequest", tableId);
+    }
 }
