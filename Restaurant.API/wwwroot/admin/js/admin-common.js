@@ -89,13 +89,13 @@ async function authFetchForm(url, formData, method) {
 }
 
 // Sidebar toggle
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     var toggleBtn = document.getElementById('btn-toggle');
     var sidebar = document.getElementById('sidebar');
     var mainContent = document.getElementById('main-content');
 
     if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
+        toggleBtn.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
         });
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Logout
     var logoutBtn = document.getElementById('btn-logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
+        logoutBtn.addEventListener('click', function (e) {
             e.preventDefault();
             sessionStorage.clear();
             window.location.href = 'login.html';
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile sidebar
     if (window.innerWidth <= 992) {
         if (toggleBtn) {
-            toggleBtn.addEventListener('click', function() {
+            toggleBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('show');
             });
         }
@@ -138,7 +138,7 @@ function showToast(message, type) {
         '</div>';
 
     document.body.appendChild(toast);
-    setTimeout(function() { toast.remove(); }, 3000);
+    setTimeout(function () { toast.remove(); }, 3000);
 }
 
 // Tarix format
@@ -148,9 +148,10 @@ function formatDate(dateStr) {
 }
 
 function formatDateTime(dateStr) {
-    var d = new Date(dateStr);
-    return d.toLocaleDateString('az', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
-        ' ' + d.toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
+    if (!dateStr) return '';
+    var parts = dateStr.replace('T', ' ').replace('Z', '').split(/[- :]/);
+    var d = parts[2] + '.' + parts[1] + '.' + parts[0] + ' ' + parts[3] + ':' + parts[4];
+    return d;
 }
 
 // Confirm dialog

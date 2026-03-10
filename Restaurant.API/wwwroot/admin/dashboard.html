@@ -200,11 +200,12 @@
                 // Reservations
                 var resRes = await authFetch('/Reservations');
                 if (resRes && resRes.success && resRes.data) {
-                    var todayRes = resRes.data.filter(function (r) { return new Date(r.reservationDate).toDateString() === today; });
+                    var todayStr = new Date().toISOString().substring(0, 10);
+                    var todayRes = resRes.data.filter(function (r) { return r.reservationDate && r.reservationDate.substring(0, 10) === todayStr; });
                     document.getElementById('stat-reservations').textContent = todayRes.length;
                     var rHtml = '';
                     todayRes.forEach(function (r) {
-                        var time = new Date(r.reservationDate).toLocaleTimeString('az', { hour: '2-digit', minute: '2-digit' });
+                        var time = r.reservationDate ? r.reservationDate.substring(11, 16) : '';
                         var stCls = r.status === 0 ? 'warning' : r.status === 1 ? 'success' : 'danger';
                         var stTxt = r.status === 0 ? 'Gözləyir' : r.status === 1 ? 'Təsdiqləndi' : 'Ləğv';
                         rHtml += '<div class="d-flex justify-content-between align-items-center p-2 mb-2" style="background:#f8f9fa;border-radius:8px;"><div><strong>' + r.customerName + '</strong><br><small class="text-muted">' + r.guestCount + ' nəfər | ' + r.customerPhone + '</small></div><div class="text-end"><span class="badge bg-' + stCls + '">' + stTxt + '</span><br><small>' + time + '</small></div></div>';
