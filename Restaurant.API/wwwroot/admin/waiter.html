@@ -280,7 +280,7 @@
                 if (data.success && data.data && data.data.length > 0) {
                     // AppUserId ile eslesen ofisianti tap
                     var user = JSON.parse(sessionStorage.getItem('user') || '{}');
-                    var waiter = data.data.find(function(w) { return w.appUserId === user.id; });
+                    var waiter = data.data.find(function(w) { return w.appUserId === user.userId; });
                     if (waiter) {
                         waiterId = waiter.id;
                         document.getElementById('waiter-name').textContent = waiter.fullName;
