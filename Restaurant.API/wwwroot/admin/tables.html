@@ -180,8 +180,13 @@
 
                 // Bu masa üçün bugünkü aktiv rezervasiya tap
                 var tableRes = reservations.find(function (r) {
-                    return r.tableId === table.id && (r.status === 0 || r.status === 1) &&
-                        r.reservationDate && r.reservationDate.substring(0, 10) === todayStr;
+                    if (r.tableId !== table.id || r.status !== 1) return false;
+                    if (!r.reservationDate) return false;
+                    if (r.reservationDate.substring(0, 10) !== todayStr) return false;
+                    var resParts = r.reservationDate.replace('T', ' ').split(/[- :]/);
+                    var resDate = new Date(resParts[0], resParts[1] - 1, resParts[2], resParts[3] || 0, resParts[4] || 0);
+                    if (now > resDate && table.status === 1) return false;
+                    return true;
                 });
                 var resInfo = '';
                 if (tableRes) {
