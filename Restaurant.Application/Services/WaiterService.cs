@@ -44,7 +44,8 @@ public class WaiterService : IWaiterService
                 TableId = wt.TableId,
                 TableName = wt.Table.Name,
                 HasReadyOrder = orders.Any(o => o.Status == OrderStatus.Ready),
-                ActiveOrderCount = orders.Count(o => o.Status != OrderStatus.Cancelled && o.Status != OrderStatus.Delivered)
+                ActiveOrderCount = orders.Count(o => o.Status != OrderStatus.Cancelled && o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Completed)
+
             });
         }
 
