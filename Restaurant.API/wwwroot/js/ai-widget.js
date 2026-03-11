@@ -1,6 +1,9 @@
 /* === AI ASSISTANT WIDGET === */
 (function () {
-    // Widget HTML yarad
+    if (document.getElementById('ai-widget')) return;
+
+    var isSending = false;
+
     var widgetHTML = '<div id="ai-widget" style="position:fixed;bottom:20px;left:20px;z-index:9998;">' +
         '<div id="ai-chat-window" style="display:none;width:340px;background:#fff;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.2);margin-bottom:10px;overflow:hidden;">' +
         '  <div style="background:#1a1a2e;color:#fff;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;">' +
@@ -29,13 +32,16 @@
 
     toggleBtn.addEventListener('click', function () {
         chatWindow.style.display = chatWindow.style.display === 'none' ? 'block' : 'none';
+        if (chatWindow.style.display === 'block') input.focus();
     });
 
     closeBtn.addEventListener('click', function () {
         chatWindow.style.display = 'none';
     });
 
-    sendBtn.addEventListener('click', function () { sendMessage(); });
+    sendBtn.addEventListener('click', function () {
+        sendMessage();
+    });
 
     input.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') sendMessage();
@@ -43,10 +49,12 @@
 
     function addMessage(text, isUser) {
         var div = document.createElement('div');
-        div.style.cssText = 'max-width:85%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;word-wrap:break-word;' +
+        div.style.cssText =
+            'max-width:85%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;word-wrap:break-word;' +
             (isUser
                 ? 'background:#c8a97e;color:#fff;align-self:flex-end;border-bottom-right-radius:4px;'
                 : 'background:#1a1a2e;color:#fff;align-self:flex-start;border-bottom-left-radius:4px;');
+
         div.textContent = text;
         messages.appendChild(div);
         messages.scrollTop = messages.scrollHeight;
@@ -68,12 +76,17 @@
     }
 
     async function sendMessage() {
+        if (isSending) return;
+
         var text = input.value.trim();
         if (!text) return;
 
+        isSending = true;
         addMessage(text, true);
         input.value = '';
         addTyping();
+        sendBtn.disabled = true;
+        input.disabled = true;
 
         try {
             var res = await fetch('/api/AiAssistant/chat', {
@@ -81,17 +94,25 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text })
             });
-            var data = await res.json();
+
+            var raw = await res.text();
+            var data = raw ? JSON.parse(raw) : null;
+
             removeTyping();
 
-            if (data.success) {
+            if (res.ok && data && data.success) {
                 addMessage(data.reply, false);
             } else {
-                addMessage(data.message || 'Xəta baş verdi. Bir az sonra yenidən cəhd edin.', false);
+                addMessage((data && data.message) || 'Xəta baş verdi. Bir az sonra yenidən cəhd edin.', false);
             }
         } catch (err) {
             removeTyping();
             addMessage('Server xətası. Bir az sonra yenidən cəhd edin.', false);
+        } finally {
+            isSending = false;
+            sendBtn.disabled = false;
+            input.disabled = false;
+            input.focus();
         }
     }
 })();

@@ -87,6 +87,7 @@ namespace Restaurant.Infrastructure.ServiceRegistration
             services.AddScoped<IKapitalBankService, KapitalBankService>();
             services.AddScoped<IQRCodeService, QRCodeService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IAiAssistantService, AiAssistantService>();
             services.AddHttpContextAccessor();
 
             return services;
