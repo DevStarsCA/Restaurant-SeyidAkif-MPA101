@@ -234,18 +234,32 @@
             var id = document.getElementById('tableId').value;
             var name = document.getElementById('tableName').value.trim();
             var capacity = parseInt(document.getElementById('tableCapacity').value);
-            if (!name || !capacity) { showToast('Ad ve tutum daxil edin', 'error'); return; }
+
+            if (!name || !capacity) {
+                showToast('Ad ve tutum daxil edin', 'error');
+                return;
+            }
+
             var body = { name: name, capacity: capacity };
             var result;
+
             if (id) {
                 body.id = id;
-                result = await authFetch('/Tables/' + id, { method: 'PUT', body: JSON.stringify(body) });
+                result = await authFetch('/Tables', {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                });
             } else {
-                result = await authFetch('/Tables', { method: 'POST', body: JSON.stringify(body) });
+                result = await authFetch('/Tables', {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
             }
+
             if (result && result.success) {
                 showToast(id ? 'Masa yenilendi' : 'Masa yaradildi', 'success');
-                tableModal.hide(); loadTables();
+                tableModal.hide();
+                loadTables();
             } else {
                 showToast(result ? result.message || 'Xeta' : 'Server xetasi', 'error');
             }
