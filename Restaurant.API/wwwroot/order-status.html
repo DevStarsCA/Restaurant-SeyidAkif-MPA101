@@ -249,9 +249,11 @@
         <button class="btn-pay" id="btn-pay" style="display:none;">
             <i class="fas fa-credit-card"></i> ONLAYN ÖDƏ
         </button>
+
         <button class="btn-pay" id="btn-pay-cash" style="display:none;background:#4CAF50;margin-top:10px;">
             <i class="fas fa-money-bill-wave"></i> MASADA ÖDƏ
         </button>
+
         <button class="btn-pay" id="btn-cancel" style="display:none;background:#e74c3c;margin-top:10px;">
             <i class="fas fa-times"></i> SİFARİŞİ LƏĞV ET
         </button>
@@ -266,8 +268,15 @@
     <script>
         var API_BASE = '/api';
         var urlParams = new URLSearchParams(window.location.search);
+
         var orderId = urlParams.get('orderId');
-        var tableId = urlParams.get('tableId') || sessionStorage.getItem('tableId');
+        var tableId = urlParams.get('tableId');
+
+        if (tableId) {
+            sessionStorage.setItem('tableId', tableId);
+        }
+
+        tableId = tableId || sessionStorage.getItem('tableId') || '';
         var connection = null;
 
         $('#btn-back-menu').attr('href', 'menu.html' + (tableId ? '?tableId=' + tableId : ''));
@@ -286,7 +295,11 @@
 
         async function loadAllOrders() {
             if (!tableId) {
-                if (orderId) { loadSingleOrder(); return; }
+                if (orderId) {
+                    loadSingleOrder();
+                    return;
+                }
+
                 $('#order-number').text('Sifariş tapılmadı');
                 return;
             }
@@ -296,14 +309,26 @@
                 var data = await res.json();
 
                 if (!data.success || !data.data || data.data.length === 0) {
-                    if (orderId) { loadSingleOrder(); return; }
+                    if (orderId) {
+                        loadSingleOrder();
+                        return;
+                    }
+
                     $('#order-number').text('Sifariş yoxdur');
+                    $('#order-status-text').text('');
+                    $('#order-badge').hide();
+                    $('#order-items-list').html('<li><span>Aktiv sifariş yoxdur</span></li>');
+                    $('#order-total').text('₼0.00');
+                    $('#btn-pay').hide();
+                    $('#btn-pay-cash').hide();
+                    $('#btn-cancel').hide();
                     return;
                 }
 
                 allOrders = data.data;
                 var itemsList = $('#order-items-list');
                 itemsList.empty();
+
                 var grandTotal = 0;
                 var latestStatus = 0;
                 var hasPendingOrder = false;
@@ -313,25 +338,38 @@
                     if (order.status === 5 || order.status === 4) return;
 
                     hasActiveOrder = true;
+
                     var st = statusMap[order.status] || statusMap[0];
                     if (order.status > latestStatus) latestStatus = order.status;
                     if (order.status === 0) hasPendingOrder = true;
 
-                    itemsList.append('<li style="background:#f8f8f8;border-radius:8px;padding:10px;margin:5px 0;font-weight:600;"><span>Sifariş #' + order.orderNumber + '</span><span class="order-status-badge ' + st.cls + '" style="font-size:11px;padding:3px 10px;">' + st.text + '</span></li>');
+                    itemsList.append(
+                        '<li style="background:#f8f8f8;border-radius:8px;padding:10px;margin:5px 0;font-weight:600;">' +
+                        '<span>Sifariş #' + order.orderNumber + '</span>' +
+                        '<span class="order-status-badge ' + st.cls + '" style="font-size:11px;padding:3px 10px;">' + st.text + '</span>' +
+                        '</li>'
+                    );
 
                     var items = order.orderItems || order.items || [];
                     items.forEach(function (item) {
                         var name = item.productName || (item.product ? item.product.name : 'Məhsul');
                         var total = (item.unitPrice || 0) * (item.quantity || 1);
                         grandTotal += total;
-                        itemsList.append('<li><div><span class="item-name">' + name + '</span><span class="item-qty"> x' + item.quantity + '</span></div><span class="item-price">₼' + total.toFixed(2) + '</span></li>');
+
+                        itemsList.append(
+                            '<li>' +
+                            '<div><span class="item-name">' + name + '</span><span class="item-qty"> x' + item.quantity + '</span></div>' +
+                            '<span class="item-price">₼' + total.toFixed(2) + '</span>' +
+                            '</li>'
+                        );
                     });
                 });
 
                 if (!hasActiveOrder) {
                     $('#order-number').text('Aktiv sifariş yoxdur');
                     $('#order-status-text').text('Tamamlandı');
-                    $('#order-badge').attr('class', 'order-status-badge status-completed').text('Tamamlandı');
+                    $('#order-badge').attr('class', 'order-status-badge status-completed').text('Tamamlandı').show();
+                    $('#order-total').text('₼0.00');
                     $('#btn-pay').hide();
                     $('#btn-pay-cash').hide();
                     $('#btn-cancel').hide();
@@ -339,32 +377,31 @@
                 }
 
                 $('#order-number').text('Masa hesabı');
+
                 var status = statusMap[latestStatus] || statusMap[0];
                 $('#order-status-text').text(status.text);
-                $('#order-badge').attr('class', 'order-status-badge ' + status.cls).text(status.text);
+                $('#order-badge').attr('class', 'order-status-badge ' + status.cls).text(status.text).show();
                 $('#order-total').text('₼' + grandTotal.toFixed(2));
 
                 steps.forEach(function (step, index) {
                     var dot = $('#dot-' + step);
                     var text = $('#text-' + step);
-                    if (index < status.step) { dot.addClass('completed').removeClass('active'); text.removeClass('active'); }
-                    else if (index === status.step) { dot.addClass('active').removeClass('completed'); text.addClass('active'); }
-                    else { dot.removeClass('active completed'); text.removeClass('active'); }
+
+                    if (index < status.step) {
+                        dot.addClass('completed').removeClass('active');
+                        text.removeClass('active');
+                    } else if (index === status.step) {
+                        dot.addClass('active').removeClass('completed');
+                        text.addClass('active');
+                    } else {
+                        dot.removeClass('active completed');
+                        text.removeClass('active');
+                    }
                 });
 
-                if (hasActiveOrder) {
-                    $('#btn-pay').show();
-                    $('#btn-pay-cash').show();
-                } else {
-                    $('#btn-pay').hide();
-                    $('#btn-pay-cash').hide();
-                }
-
-                if (hasPendingOrder) {
-                    $('#btn-cancel').show();
-                } else {
-                    $('#btn-cancel').hide();
-                }
+                $('#btn-pay').toggle(hasActiveOrder);
+                $('#btn-pay-cash').toggle(hasActiveOrder);
+                $('#btn-cancel').toggle(hasPendingOrder);
 
             } catch (err) {
                 console.error(err);
@@ -376,124 +413,163 @@
             try {
                 var res = await fetch(API_BASE + '/Orders/' + orderId);
                 var data = await res.json();
-                if (!data.success) { $('#order-number').text('Sifariş tapılmadı'); return; }
+
+                if (!data.success) {
+                    $('#order-number').text('Sifariş tapılmadı');
+                    return;
+                }
 
                 var order = data.data;
-                // Masa yoxlaması - başqa masanın sifarişini görmə
+
                 if (tableId && order.tableId && order.tableId !== tableId) {
                     $('#order-number').text('Bu sifariş sizin masanıza aid deyil');
                     return;
                 }
+
                 $('#order-number').text('Sifariş #' + order.orderNumber);
+
                 var status = statusMap[order.status] || statusMap[0];
                 $('#order-status-text').text(status.text);
-                $('#order-badge').attr('class', 'order-status-badge ' + status.cls).text(status.text);
+                $('#order-badge').attr('class', 'order-status-badge ' + status.cls).text(status.text).show();
 
                 steps.forEach(function (step, index) {
                     var dot = $('#dot-' + step);
                     var text = $('#text-' + step);
-                    if (index < status.step) { dot.addClass('completed').removeClass('active'); text.removeClass('active'); }
-                    else if (index === status.step) { dot.addClass('active').removeClass('completed'); text.addClass('active'); }
-                    else { dot.removeClass('active completed'); text.removeClass('active'); }
+
+                    if (index < status.step) {
+                        dot.addClass('completed').removeClass('active');
+                        text.removeClass('active');
+                    } else if (index === status.step) {
+                        dot.addClass('active').removeClass('completed');
+                        text.addClass('active');
+                    } else {
+                        dot.removeClass('active completed');
+                        text.removeClass('active');
+                    }
                 });
 
                 var itemsList = $('#order-items-list');
                 itemsList.empty();
+
                 var items = order.orderItems || order.items || [];
                 items.forEach(function (item) {
                     var name = item.productName || (item.product ? item.product.name : 'Məhsul');
-                    itemsList.append('<li><div><span class="item-name">' + name + '</span><span class="item-qty"> x' + item.quantity + '</span></div><span class="item-price">₼' + (item.unitPrice * item.quantity).toFixed(2) + '</span></li>');
+
+                    itemsList.append(
+                        '<li>' +
+                        '<div><span class="item-name">' + name + '</span><span class="item-qty"> x' + item.quantity + '</span></div>' +
+                        '<span class="item-price">₼' + ((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2) + '</span>' +
+                        '</li>'
+                    );
                 });
 
-                $('#order-total').text('₼' + order.totalAmount.toFixed(2));
+                $('#order-total').text('₼' + (order.totalAmount || 0).toFixed(2));
 
-                if (order.status !== 5 && order.status !== 4) {
-                    $('#btn-pay').show();
-                    $('#btn-pay-cash').show();
-                } else {
-                    $('#btn-pay').hide();
-                    $('#btn-pay-cash').hide();
-                }
+                $('#btn-pay').toggle(order.status !== 5 && order.status !== 4);
+                $('#btn-pay-cash').toggle(order.status !== 5 && order.status !== 4);
+                $('#btn-cancel').toggle(order.status === 0);
 
-                if (order.status === 0) {
-                    $('#btn-cancel').show();
-                } else {
-                    $('#btn-cancel').hide();
-                }
-            } catch (err) { $('#order-number').text('Xəta baş verdi'); }
+            } catch (err) {
+                $('#order-number').text('Xəta baş verdi');
+            }
         }
 
-        // Online ödəniş
         $('#btn-pay').on('click', async function () {
             var orderIds = [];
+
             if (allOrders.length > 0) {
-                allOrders.forEach(function (o) { if (o.status !== 5 && o.status !== 4) orderIds.push(o.id); });
+                allOrders.forEach(function (o) {
+                    if (o.status !== 5 && o.status !== 4) orderIds.push(o.id);
+                });
             } else if (orderId) {
                 orderIds.push(orderId);
             }
 
-            if (orderIds.length === 0) { alert('Ödəniləcək sifariş yoxdur'); return; }
+            if (orderIds.length === 0) {
+                alert('Ödəniləcək sifariş yoxdur');
+                return;
+            }
 
             try {
                 var res = await fetch(API_BASE + '/Payments/online/' + orderIds[0], {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
+
                 var data = await res.json();
+
                 if (data.success && data.data && data.data.hppUrl) {
                     window.location.href = data.data.hppUrl;
                     return;
-                } else {
-                    var cashPay = confirm('Online ödəniş hal-hazırda mümkün deyil.\n\nNağd ödəmək istəyirsiniz?');
-                    if (cashPay) {
-                        for (var i = 0; i < orderIds.length; i++) {
-                            await fetch(API_BASE + '/Payments/complete/' + orderIds[i], { method: 'POST' });
-                        }
-                        alert('Ödəniş qəbul edildi! Təşəkkürlər!');
-                        loadAllOrders();
-                    }
                 }
-            } catch (err) { alert('Server xətası'); }
+
+                alert('Online ödəniş hal-hazırda mümkün deyil.');
+            } catch (err) {
+                alert('Server xətası');
+            }
         });
 
-        // Masada ödəniş
         $('#btn-pay-cash').on('click', function (e) {
             e.preventDefault();
+
             if (connection) {
                 connection.invoke("NotifyTablePaymentRequest", tableId).catch(function () { });
             }
+
             var toast = document.createElement('div');
             toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#1cc88a;color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
             toast.textContent = 'Kassir masanıza gələcək. Təşəkkürlər!';
             document.body.appendChild(toast);
-            setTimeout(function () { toast.remove(); }, 4000);
+
+            setTimeout(function () {
+                toast.remove();
+            }, 4000);
         });
 
-        // Sifariş ləğv et
         $('#btn-cancel').on('click', async function () {
             if (!confirm('Sifarişi ləğv etmək istəyirsiniz?')) return;
 
             var orderIds = [];
+
             if (allOrders.length > 0) {
-                allOrders.forEach(function (o) { if (o.status === 0) orderIds.push(o.id); });
+                allOrders.forEach(function (o) {
+                    if (o.status === 0) orderIds.push(o.id);
+                });
             } else if (orderId) {
                 orderIds.push(orderId);
             }
 
-            if (orderIds.length === 0) { alert('Ləğv ediləcək sifariş yoxdur'); return; }
+            if (orderIds.length === 0) {
+                alert('Ləğv ediləcək sifariş yoxdur');
+                return;
+            }
 
             try {
                 for (var i = 0; i < orderIds.length; i++) {
-                    await fetch(API_BASE + '/Orders/' + orderIds[i] + '?tableId=' + tableId, { method: 'DELETE' });
+                    await fetch(API_BASE + '/Orders/' + orderIds[i] + '?tableId=' + tableId, {
+                        method: 'DELETE'
+                    });
                 }
+
                 sessionStorage.removeItem('cart');
-                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f2f5;"><div style="background:#fff;padding:60px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.1);max-width:400px;"><div style="font-size:80px;margin-bottom:20px;">❌</div><h2 style="color:#2d3436;margin-bottom:10px;">Sifariş ləğv edildi</h2><p style="color:#999;margin-bottom:20px;">Sifarişiniz uğurla ləğv olundu.</p><a href="index.html" style="display:inline-block;padding:12px 30px;background:#c8a97e;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Ana səhifə</a></div></div>';
-            } catch (err) { alert('Xəta baş verdi'); }
+
+                document.body.innerHTML =
+                    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f2f5;">' +
+                    '<div style="background:#fff;padding:60px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.1);max-width:400px;">' +
+                    '<div style="font-size:80px;margin-bottom:20px;">❌</div>' +
+                    '<h2 style="color:#2d3436;margin-bottom:10px;">Sifariş ləğv edildi</h2>' +
+                    '<p style="color:#999;margin-bottom:20px;">Sifarişiniz uğurla ləğv olundu.</p>' +
+                    '<a href="menu.html' + (tableId ? '?tableId=' + tableId : '') + '" style="display:inline-block;padding:12px 30px;background:#c8a97e;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Menyuya qayıt</a>' +
+                    '</div></div>';
+            } catch (err) {
+                alert('Xəta baş verdi');
+            }
         });
 
         loadAllOrders();
         setInterval(loadAllOrders, 10000);
     </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
     <script>
         if (tableId) {
@@ -501,18 +577,26 @@
                 .withUrl("/hubs/order")
                 .withAutomaticReconnect()
                 .build();
-            connection.on("OrderStatusChanged", function (orderNumber, status) {
+
+            connection.on("OrderStatusChanged", function () {
                 loadAllOrders();
             });
-            connection.on("TableClosed", function (message) {
+
+            connection.on("TableClosed", function () {
                 sessionStorage.removeItem('cart');
                 window.location.href = 'payment-success.html?tableId=' + tableId;
             });
-            connection.start().then(function () {
-                connection.invoke("JoinTable", tableId);
-            }).catch(function (err) { console.log("SignalR error:", err); });
+
+            connection.start()
+                .then(function () {
+                    connection.invoke("JoinTable", tableId);
+                })
+                .catch(function (err) {
+                    console.log("SignalR error:", err);
+                });
         }
     </script>
+
     <script src="js/ai-widget.js"></script>
 </body>
 </html>
