@@ -1,121 +1,75 @@
-<!DOCTYPE html>
-<html lang="az">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ödəniş</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: #f0f2f5;
-            margin: 0;
+<script>
+    var urlParams = new URLSearchParams(window.location.search);
+
+    var kapitalId = urlParams.get('ID');
+    var kapitalStatus = urlParams.get('STATUS');
+
+    var orderId = urlParams.get('orderId');
+    var tableId = urlParams.get('tableId') || localStorage.getItem('tableId') || '';
+
+    if (kapitalId) {
+        if ((kapitalStatus || '').toLowerCase() === 'fullypaid') {
+            completeByPurchaseId(kapitalId);
+        } else {
+            showError();
         }
-        .card {
-            background: #fff;
-            padding: 60px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            max-width: 400px;
-        }
-        .icon { font-size: 80px; margin-bottom: 20px; }
-        h2 { color: #2d3436; margin-bottom: 10px; }
-        p { color: #999; margin-bottom: 5px; }
-        .btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 30px;
-            background: #c8a97e;
-            color: #fff;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .btn:hover { background: #b8956e; }
-    </style>
-</head>
-<body>
-    <div class="card" id="card">
-        <div class="icon" style="color:#c8a97e;">⏳</div>
-        <h2>Ödəniş təsdiqlənir...</h2>
-        <p>Zəhmət olmasa gözləyin</p>
-    </div>
+    } else if (orderId) {
+        completeByOrderId(orderId);
+    } else {
+        showSuccess();
+    }
 
-    <script>
-        var urlParams = new URLSearchParams(window.location.search);
+    async function completeByPurchaseId(purchaseId) {
+        try {
+            var res = await fetch('/api/Payments/complete-by-purchase/' + purchaseId, { method: 'POST' });
+            var data = await res.json();
 
-        var kapitalId = urlParams.get('ID');
-        var kapitalStatus = urlParams.get('STATUS');
-
-        var orderId = urlParams.get('orderId');
-        var tableId = urlParams.get('tableId') || sessionStorage.getItem('tableId') || '';
-
-        if (kapitalId) {
-            if ((kapitalStatus || '').toLowerCase() === 'fullypaid') {
-                completeByPurchaseId(kapitalId);
+            if (res.ok && data.success) {
+                showSuccess();
             } else {
                 showError();
             }
-        } else if (orderId) {
-            completeByOrderId(orderId);
-        } else {
-            showSuccess();
+        } catch (err) {
+            showError();
         }
+    }
 
-        async function completeByPurchaseId(purchaseId) {
-            try {
-                var res = await fetch('/api/Payments/complete-by-purchase/' + purchaseId, { method: 'POST' });
-                var data = await res.json();
+    async function completeByOrderId(orderId) {
+        try {
+            var res = await fetch('/api/Payments/complete/' + orderId, { method: 'POST' });
+            var data = await res.json();
 
-                if (res.ok && data.success) {
-                    showSuccess();
-                } else {
-                    showError();
-                }
-            } catch (err) {
+            if (res.ok && data.success) {
+                showSuccess();
+            } else {
                 showError();
             }
+        } catch (err) {
+            showError();
         }
+    }
 
-        async function completeByOrderId(orderId) {
-            try {
-                var res = await fetch('/api/Payments/complete/' + orderId, { method: 'POST' });
-                var data = await res.json();
+    function showSuccess() {
+        document.getElementById('card').innerHTML =
+            '<div class="icon">✅</div>' +
+            '<h2>Ödəniş uğurla tamamlandı!</h2>' +
+            '<p>Bizi seçdiyiniz üçün təşəkkür edirik. Nuş olsun!</p>' +
+            '<a href="index.html" class="btn">Ana səhifə</a>';
+    }
 
-                if (res.ok && data.success) {
-                    showSuccess();
-                } else {
-                    showError();
-                }
-            } catch (err) {
-                showError();
-            }
-        }
-
-        function showSuccess() {
-            document.getElementById('card').innerHTML =
-                '<div class="icon">✅</div>' +
-                '<h2>Ödəniş uğurla tamamlandı!</h2>' +
-                '<p>Bizi seçdiyiniz üçün təşəkkür edirik. Nuş olsun!</p>' +
-                '<a href="index.html" class="btn">Ana səhifə</a>';
-        }
-
-        function showError() {
-            var backUrl = tableId
-                ? 'order-status.html?tableId=' + tableId
-                : 'order-status.html';
-
+    function showError() {
+        if (!tableId) {
             document.getElementById('card').innerHTML =
                 '<div class="icon">❌</div>' +
                 '<h2>Ödəniş uğursuz oldu</h2>' +
-                '<p>Ödəniş həyata keçirilmədi. Yenidən cəhd edin.</p>' +
-                '<a href="' + backUrl + '" class="btn">Sifarişə qayıt</a>';
+                '<p>Masa tapılmadı.</p>';
+            return;
         }
-    </script>
-    <script src="js/ai-widget.js"></script>
-</body>
-</html>
+
+        document.getElementById('card').innerHTML =
+            '<div class="icon">❌</div>' +
+            '<h2>Ödəniş uğursuz oldu</h2>' +
+            '<p>Ödəniş həyata keçirilmədi. Yenidən cəhd edin.</p>' +
+            '<a href="menu.html?tableId=' + tableId + '" class="btn">Menyuya qayıt</a>';
+    }
+</script>

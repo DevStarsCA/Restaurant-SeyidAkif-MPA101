@@ -2,6 +2,13 @@
 var API_BASE = '/api';
 var urlParams = new URLSearchParams(window.location.search);
 var tableId = urlParams.get('tableId');
+
+if (tableId) {
+    localStorage.setItem('tableId', tableId);
+}
+
+tableId = tableId || localStorage.getItem('tableId') || '';
+
 var isInRestaurant = !!tableId;
 var cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
 
