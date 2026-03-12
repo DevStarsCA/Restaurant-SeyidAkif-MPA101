@@ -105,13 +105,15 @@
         }
 
         function showError() {
+            var backUrl = tableId
+                ? 'order-status.html?tableId=' + tableId
+                : 'order-status.html';
+
             document.getElementById('card').innerHTML =
                 '<div class="icon">❌</div>' +
                 '<h2>Ödəniş uğursuz oldu</h2>' +
                 '<p>Ödəniş həyata keçirilmədi. Yenidən cəhd edin.</p>' +
-                (tableId
-                    ? '<a href="order-status.html?tableId=' + tableId + '" class="btn">Sifarişə qayıt</a>'
-                    : '<a href="index.html" class="btn">Ana səhifə</a>');
+                '<a href="' + backUrl + '" class="btn">Sifarişə qayıt</a>';
         }
     </script>
     <script src="js/ai-widget.js"></script>
