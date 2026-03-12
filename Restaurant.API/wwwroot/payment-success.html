@@ -1,143 +1,602 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="az">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ödəniş</title>
+    <link rel="stylesheet" href="css/plugins/bootstrap.min.css">
+    <link rel="stylesheet" href="css/plugins/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Restoran - Sifariş İzləmə</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: #f0f2f5;
-            margin: 0;
+        .order-status-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px 15px;
         }
 
-        .card {
+        .order-card {
             background: #fff;
-            padding: 60px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            max-width: 400px;
-        }
-
-        .icon {
-            font-size: 80px;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.08);
             margin-bottom: 20px;
         }
 
-        h2 {
-            color: #2d3436;
-            margin-bottom: 10px;
-        }
-
-        p {
+        .order-number {
+            font-size: 14px;
             color: #999;
-            margin-bottom: 5px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
-        .btn {
+        .order-status-badge {
             display: inline-block;
-            margin-top: 20px;
-            padding: 12px 30px;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-preparing {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-served {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            flex-shrink: 0;
+            transition: all 0.5s;
+        }
+
+            .timeline-dot.active {
+                background: #c8a97e;
+            }
+
+            .timeline-dot.completed {
+                background: #4CAF50;
+            }
+
+        .timeline-text {
+            font-size: 15px;
+        }
+
+            .timeline-text.active {
+                font-weight: 600;
+                color: #c8a97e;
+            }
+
+        .order-items {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0;
+        }
+
+            .order-items li {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+                .order-items li:last-child {
+                    border: none;
+                }
+
+        .item-name {
+            font-weight: 500;
+        }
+
+        .item-qty {
+            color: #999;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #c8a97e;
+        }
+
+        .order-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-top: 2px solid #f0f0f0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .btn-pay {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: none;
             background: #c8a97e;
             color: #fff;
-            border-radius: 8px;
-            text-decoration: none;
+            font-size: 16px;
             font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-            .btn:hover {
+            .btn-pay:hover {
                 background: #b8956e;
             }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #c8a97e;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="card" id="card">
-        <div class="icon" style="color:#c8a97e;">⏳</div>
-        <h2>Ödəniş təsdiqlənir...</h2>
-        <p>Zəhmət olmasa gözləyin</p>
+
+<body style="background: #f8f8f8;">
+
+    <div class="order-status-container">
+
+        <div style="text-align:center; margin-bottom:30px;">
+            <img src="img/logo-sm.svg" alt="Restoran" style="height:40px; margin-bottom:15px;">
+            <h3>Sifariş İzləmə</h3>
+        </div>
+
+        <div class="order-card">
+            <div class="order-number" id="order-number">Yüklənir...</div>
+            <h4 style="margin:10px 0;" id="order-status-text">Status yoxlanılır...</h4>
+            <span class="order-status-badge status-pending pulse-animation" id="order-badge">Gözləyir</span>
+
+            <div class="order-timeline" id="order-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot active" id="dot-pending"><i class="fas fa-check" style="font-size:10px;"></i></div>
+                    <div class="timeline-text active" id="text-pending">Sifariş qəbul edildi</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" id="dot-preparing"><i class="fas fa-fire" style="font-size:10px;"></i></div>
+                    <div class="timeline-text" id="text-preparing">Hazırlanır</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" id="dot-ready"><i class="fas fa-bell" style="font-size:10px;"></i></div>
+                    <div class="timeline-text" id="text-ready">Hazırdır</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" id="dot-served"><i class="fas fa-utensils" style="font-size:10px;"></i></div>
+                    <div class="timeline-text" id="text-served">Masaya gətirildi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-card">
+            <h5 style="margin-bottom:15px;">Sifariş detalları</h5>
+            <ul class="order-items" id="order-items-list">
+                <li><span>Yüklənir...</span></li>
+            </ul>
+            <div class="order-total-row">
+                <span>Cəmi</span>
+                <span id="order-total">₼0.00</span>
+            </div>
+        </div>
+
+        <button class="btn-pay" id="btn-pay" style="display:none;">
+            <i class="fas fa-credit-card"></i> ONLAYN ÖDƏ
+        </button>
+
+        <button class="btn-pay" id="btn-pay-cash" style="display:none;background:#4CAF50;margin-top:10px;">
+            <i class="fas fa-money-bill-wave"></i> MASADA ÖDƏ
+        </button>
+
+        <button class="btn-pay" id="btn-cancel" style="display:none;background:#e74c3c;margin-top:10px;">
+            <i class="fas fa-times"></i> SİFARİŞİ LƏĞV ET
+        </button>
+
+        <a href="#" class="btn-back" id="btn-back-menu">
+            <i class="fas fa-arrow-left"></i> Menyuya qayıt
+        </a>
+
     </div>
 
+    <script src="js/plugins/jquery.min.js"></script>
     <script>
+        var API_BASE = '/api';
         var urlParams = new URLSearchParams(window.location.search);
 
-        var kapitalId = urlParams.get('ID');
-        var kapitalStatus = urlParams.get('STATUS');
-
         var orderId = urlParams.get('orderId');
-        var tableId = urlParams.get('tableId') || sessionStorage.getItem('tableId') || '';
+        var tableId = urlParams.get('tableId');
 
-        if (kapitalId) {
-            if ((kapitalStatus || '').toLowerCase() === 'fullypaid') {
-                completeByPurchaseId(kapitalId);
-            } else {
-                showError();
-            }
-        } else if (orderId) {
-            completeByOrderId(orderId);
-        } else {
-            showSuccess();
+        if (tableId) {
+            sessionStorage.setItem('tableId', tableId);
         }
 
-        async function completeByPurchaseId(purchaseId) {
-            try {
-                var res = await fetch('/api/Payments/complete-by-purchase/' + purchaseId, { method: 'POST' });
-                var data = await res.json();
+        tableId = tableId || sessionStorage.getItem('tableId') || '';
+        var connection = null;
 
-                if (res.ok && data.success) {
-                    showSuccess();
-                } else {
-                    showError();
-                }
-            } catch (err) {
-                showError();
-            }
-        }
+        $('#btn-back-menu').attr('href', 'menu.html' + (tableId ? '?tableId=' + tableId : ''));
 
-        async function completeByOrderId(orderId) {
-            try {
-                var res = await fetch('/api/Payments/complete/' + orderId, { method: 'POST' });
-                var data = await res.json();
+        var statusMap = {
+            0: { text: 'Gözləyir', cls: 'status-pending', step: 0 },
+            1: { text: 'Hazırlanır', cls: 'status-preparing', step: 1 },
+            2: { text: 'Hazırdır', cls: 'status-ready', step: 2 },
+            3: { text: 'Masaya gətirildi', cls: 'status-served', step: 3 },
+            4: { text: 'Tamamlandı', cls: 'status-completed', step: 4 },
+            5: { text: 'Ləğv edildi', cls: 'status-cancelled', step: -1 }
+        };
 
-                if (res.ok && data.success) {
-                    showSuccess();
-                } else {
-                    showError();
-                }
-            } catch (err) {
-                showError();
-            }
-        }
+        var steps = ['pending', 'preparing', 'ready', 'served'];
+        var allOrders = [];
 
-        function showSuccess() {
-            document.getElementById('card').innerHTML =
-                '<div class="icon">✅</div>' +
-                '<h2>Ödəniş uğurla tamamlandı!</h2>' +
-                '<p>Bizi seçdiyiniz üçün təşəkkür edirik. Nuş olsun!</p>' +
-                '<a href="index.html" class="btn">Ana səhifə</a>';
-
-            setTimeout(function () {
-                window.location.href = 'index.html';
-            }, 2000);
-        }
-
-        function showError() {
+        async function loadAllOrders() {
             if (!tableId) {
-                document.getElementById('card').innerHTML =
-                    '<div class="icon">❌</div>' +
-                    '<h2>Ödəniş uğursuz oldu</h2>' +
-                    '<p>Masa tapılmadı.</p>';
+                if (orderId) {
+                    loadSingleOrder();
+                    return;
+                }
+
+                $('#order-number').text('Sifariş tapılmadı');
                 return;
             }
 
-            document.getElementById('card').innerHTML =
-                '<div class="icon">❌</div>' +
-                '<h2>Ödəniş uğursuz oldu</h2>' +
-                '<p>Ödəniş həyata keçirilmədi.</p>' +
-                '<a href="menu.html?tableId=' + tableId + '" class="btn">Menyuya qayıt</a>';
+            try {
+                var res = await fetch(API_BASE + '/Orders/table/' + tableId);
+                var data = await res.json();
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    if (orderId) {
+                        loadSingleOrder();
+                        return;
+                    }
+
+                    $('#order-number').text('Sifariş yoxdur');
+                    $('#order-status-text').text('');
+                    $('#order-badge').hide();
+                    $('#order-items-list').html('<li><span>Aktiv sifariş yoxdur</span></li>');
+                    $('#order-total').text('₼0.00');
+                    $('#btn-pay').hide();
+                    $('#btn-pay-cash').hide();
+                    $('#btn-cancel').hide();
+                    return;
+                }
+
+                allOrders = data.data;
+                var itemsList = $('#order-items-list');
+                itemsList.empty();
+
+                var grandTotal = 0;
+                var latestStatus = 0;
+                var hasPendingOrder = false;
+                var hasActiveOrder = false;
+
+                allOrders.forEach(function (order) {
+                    if (order.status === 5 || order.status === 4) return;
+
+                    hasActiveOrder = true;
+
+                    var st = statusMap[order.status] || statusMap[0];
+                    if (order.status > latestStatus) latestStatus = order.status;
+                    if (order.status === 0) hasPendingOrder = true;
+
+                    itemsList.append(
+                        '<li style="background:#f8f8f8;border-radius:8px;padding:10px;margin:5px 0;font-weight:600;">' +
+                        '<span>Sifariş #' + order.orderNumber + '</span>' +
+                        '<span class="order-status-badge ' + st.cls + '" style="font-size:11px;padding:3px 10px;">' + st.text + '</span>' +
+                        '</li>'
+                    );
+
+                    var items = order.orderItems || order.items || [];
+                    items.forEach(function (item) {
+                        var name = item.productName || (item.product ? item.product.name : 'Məhsul');
+                        var total = (item.unitPrice || 0) * (item.quantity || 1);
+                        grandTotal += total;
+
+                        itemsList.append(
+                            '<li>' +
+                            '<div><span class="item-name">' + name + '</span><span class="item-qty"> x' + item.quantity + '</span></div>' +
+                            '<span class="item-price">₼' + total.toFixed(2) + '</span>' +
+                            '</li>'
+                        );
+                    });
+                });
+
+                if (!hasActiveOrder) {
+                    $('#order-number').text('Aktiv sifariş yoxdur');
+                    $('#order-status-text').text('Tamamlandı');
+                    $('#order-badge').attr('class', 'order-status-badge status-completed').text('Tamamlandı').show();
+                    $('#order-total').text('₼0.00');
+                    $('#btn-pay').hide();
+                    $('#btn-pay-cash').hide();
+                    $('#btn-cancel').hide();
+                    return;
+                }
+
+                $('#order-number').text('Masa hesabı');
+
+                var status = statusMap[latestStatus] || statusMap[0];
+                $('#order-status-text').text(status.text);
+                $('#order-badge').attr('class', 'order-status-badge ' + status.cls).text(status.text).show();
+                $('#order-total').text('₼' + grandTotal.toFixed(2));
+
+                steps.forEach(function (step, index) {
+                    var dot = $('#dot-' + step);
+                    var text = $('#text-' + step);
+
+                    if (index < status.step) {
+                        dot.addClass('completed').removeClass('active');
+                        text.removeClass('active');
+                    } else if (index === status.step) {
+                        dot.addClass('active').removeClass('completed');
+                        text.addClass('active');
+                    } else {
+                        dot.removeClass('active completed');
+                        text.removeClass('active');
+                    }
+                });
+
+                $('#btn-pay').toggle(hasActiveOrder);
+                $('#btn-pay-cash').toggle(hasActiveOrder);
+                $('#btn-cancel').toggle(hasPendingOrder);
+
+            } catch (err) {
+                console.error(err);
+                if (orderId) loadSingleOrder();
+            }
+        }
+
+        async function loadSingleOrder() {
+            try {
+                var res = await fetch(API_BASE + '/Orders/' + orderId);
+                var data = await res.json();
+
+                if (!data.success) {
+                    $('#order-number').text('Sifariş tapılmadı');
+                    return;
+                }
+
+                var order = data.data;
+
+                if (tableId && order.tableId && order.tableId !== tableId) {
+                    $('#order-number').text('Bu sifariş sizin masanıza aid deyil');
+                    return;
+                }
+
+                $('#order-number').text('Sifariş #' + order.orderNumber);
+
+                var status = statusMap[order.status] || statusMap[0];
+                $('#order-status-text').text(status.text);
+                $('#order-badge').attr('class', 'order-status-badge ' + status.cls).text(status.text).show();
+
+                steps.forEach(function (step, index) {
+                    var dot = $('#dot-' + step);
+                    var text = $('#text-' + step);
+
+                    if (index < status.step) {
+                        dot.addClass('completed').removeClass('active');
+                        text.removeClass('active');
+                    } else if (index === status.step) {
+                        dot.addClass('active').removeClass('completed');
+                        text.addClass('active');
+                    } else {
+                        dot.removeClass('active completed');
+                        text.removeClass('active');
+                    }
+                });
+
+                var itemsList = $('#order-items-list');
+                itemsList.empty();
+
+                var items = order.orderItems || order.items || [];
+                items.forEach(function (item) {
+                    var name = item.productName || (item.product ? item.product.name : 'Məhsul');
+
+                    itemsList.append(
+                        '<li>' +
+                        '<div><span class="item-name">' + name + '</span><span class="item-qty"> x' + item.quantity + '</span></div>' +
+                        '<span class="item-price">₼' + ((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2) + '</span>' +
+                        '</li>'
+                    );
+                });
+
+                $('#order-total').text('₼' + (order.totalAmount || 0).toFixed(2));
+
+                $('#btn-pay').toggle(order.status !== 5 && order.status !== 4);
+                $('#btn-pay-cash').toggle(order.status !== 5 && order.status !== 4);
+                $('#btn-cancel').toggle(order.status === 0);
+
+            } catch (err) {
+                $('#order-number').text('Xəta baş verdi');
+            }
+        }
+
+        $('#btn-pay').on('click', async function () {
+            var orderIds = [];
+
+            if (allOrders.length > 0) {
+                allOrders.forEach(function (o) {
+                    if (o.status !== 5 && o.status !== 4) orderIds.push(o.id);
+                });
+            } else if (orderId) {
+                orderIds.push(orderId);
+            }
+
+            if (orderIds.length === 0) {
+                alert('Ödəniləcək sifariş yoxdur');
+                return;
+            }
+
+            try {
+                var res = await fetch(API_BASE + '/Payments/online/' + orderIds[0], {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                var data = await res.json();
+
+                if (data.success && data.data && data.data.hppUrl) {
+                    window.location.href = data.data.hppUrl;
+                    return;
+                }
+
+                alert('Online ödəniş hal-hazırda mümkün deyil.');
+            } catch (err) {
+                alert('Server xətası');
+            }
+        });
+
+        $('#btn-pay-cash').on('click', function (e) {
+            e.preventDefault();
+
+            if (connection) {
+                connection.invoke("NotifyTablePaymentRequest", tableId).catch(function () { });
+            }
+
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;top:20px;right:20px;background:#1cc88a;color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
+            toast.textContent = 'Kassir masanıza gələcək. Təşəkkürlər!';
+            document.body.appendChild(toast);
+
+            setTimeout(function () {
+                toast.remove();
+            }, 4000);
+        });
+
+        $('#btn-cancel').on('click', async function () {
+            if (!confirm('Sifarişi ləğv etmək istəyirsiniz?')) return;
+
+            var orderIds = [];
+
+            if (allOrders.length > 0) {
+                allOrders.forEach(function (o) {
+                    if (o.status === 0) orderIds.push(o.id);
+                });
+            } else if (orderId) {
+                orderIds.push(orderId);
+            }
+
+            if (orderIds.length === 0) {
+                alert('Ləğv ediləcək sifariş yoxdur');
+                return;
+            }
+
+            try {
+                for (var i = 0; i < orderIds.length; i++) {
+                    await fetch(API_BASE + '/Orders/' + orderIds[i] + '?tableId=' + tableId, {
+                        method: 'DELETE'
+                    });
+                }
+
+                sessionStorage.removeItem('cart');
+
+                document.body.innerHTML =
+                    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f2f5;">' +
+                    '<div style="background:#fff;padding:60px;border-radius:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.1);max-width:400px;">' +
+                    '<div style="font-size:80px;margin-bottom:20px;">❌</div>' +
+                    '<h2 style="color:#2d3436;margin-bottom:10px;">Sifariş ləğv edildi</h2>' +
+                    '<p style="color:#999;margin-bottom:20px;">Sifarişiniz uğurla ləğv olundu.</p>' +
+                    '<a href="menu.html' + (tableId ? '?tableId=' + tableId : '') + '" style="display:inline-block;padding:12px 30px;background:#c8a97e;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Menyuya qayıt</a>' +
+                    '</div></div>';
+            } catch (err) {
+                alert('Xəta baş verdi');
+            }
+        });
+
+        loadAllOrders();
+        setInterval(loadAllOrders, 10000);
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        if (tableId) {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/order")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("OrderStatusChanged", function () {
+                loadAllOrders();
+            });
+
+            connection.on("TableClosed", function () {
+                sessionStorage.removeItem('cart');
+                window.location.href = 'payment-success.html?tableId=' + tableId;
+            });
+
+            connection.start()
+                .then(function () {
+                    connection.invoke("JoinTable", tableId);
+                })
+                .catch(function (err) {
+                    console.log("SignalR error:", err);
+                });
         }
     </script>
+
+    <script src="js/ai-widget.js"></script>
+</body>
+</html>
