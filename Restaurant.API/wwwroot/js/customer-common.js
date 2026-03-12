@@ -4,10 +4,10 @@ var urlParams = new URLSearchParams(window.location.search);
 var tableId = urlParams.get('tableId');
 
 if (tableId) {
-    localStorage.setItem('tableId', tableId);
+    sessionStorage.setItem('tableId', tableId);
 }
 
-tableId = tableId || localStorage.getItem('tableId') || '';
+tableId = tableId || sessionStorage.getItem('tableId') || '';
 
 var isInRestaurant = !!tableId;
 var cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
