@@ -48,30 +48,30 @@
     <script>
         var urlParams = new URLSearchParams(window.location.search);
 
-        // Kapital Bank callback: ?ID=1234&STATUS=FullyPaid
         var kapitalId = urlParams.get('ID');
         var kapitalStatus = urlParams.get('STATUS');
 
-        // Bizim internal: ?orderId=xxx veya ?tableId=xxx (kassir ödənişi)
         var orderId = urlParams.get('orderId');
         var tableId = urlParams.get('tableId') || sessionStorage.getItem('tableId') || '';
 
         if (kapitalId) {
-            // Kapital Bank-dan gəlib - purchaseId ilə ödənişi tamamla
-            completeByPurchaseId(kapitalId, kapitalStatus);
+            if ((kapitalStatus || '').toLowerCase() === 'fullypaid') {
+                completeByPurchaseId(kapitalId);
+            } else {
+                showError();
+            }
         } else if (orderId) {
-            // Internal - orderId ilə ödənişi tamamla
             completeByOrderId(orderId);
         } else {
-            // Kassir ödənişi - birbaşa success
             showSuccess();
         }
 
-        async function completeByPurchaseId(purchaseId, status) {
+        async function completeByPurchaseId(purchaseId) {
             try {
                 var res = await fetch('/api/Payments/complete-by-purchase/' + purchaseId, { method: 'POST' });
                 var data = await res.json();
-                if (data.success) {
+
+                if (res.ok && data.success) {
                     showSuccess();
                 } else {
                     showError();
@@ -85,7 +85,8 @@
             try {
                 var res = await fetch('/api/Payments/complete/' + orderId, { method: 'POST' });
                 var data = await res.json();
-                if (data.success) {
+
+                if (res.ok && data.success) {
                     showSuccess();
                 } else {
                     showError();
@@ -108,7 +109,9 @@
                 '<div class="icon">❌</div>' +
                 '<h2>Ödəniş uğursuz oldu</h2>' +
                 '<p>Ödəniş həyata keçirilmədi. Yenidən cəhd edin.</p>' +
-                (tableId ? '<a href="order-status.html?tableId=' + tableId + '" class="btn">Sifarişə qayıt</a>' : '<a href="index.html" class="btn">Ana səhifə</a>');
+                (tableId
+                    ? '<a href="order-status.html?tableId=' + tableId + '" class="btn">Sifarişə qayıt</a>'
+                    : '<a href="index.html" class="btn">Ana səhifə</a>');
         }
     </script>
     <script src="js/ai-widget.js"></script>
